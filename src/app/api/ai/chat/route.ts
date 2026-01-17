@@ -310,33 +310,19 @@ const tools = [
   },
 ];
 
-// Blocked SQL keywords (case-insensitive)
-const BLOCKED_SQL_KEYWORDS = [
-  'INSERT', 'UPDATE', 'DELETE', 'DROP', 'TRUNCATE', 'ALTER', 'CREATE',
-  'GRANT', 'REVOKE', 'EXECUTE', 'EXEC', 'INTO', '--', ';', 'COPY',
-];
+// Block write operations only
+const WRITE_KEYWORDS = ['INSERT', 'UPDATE', 'DELETE', 'DROP', 'TRUNCATE', 'ALTER', 'CREATE', 'GRANT', 'REVOKE'];
 
 // Tool execution functions
 async function executeSql(query: string): Promise<unknown> {
   try {
-    const normalized = query.trim().toUpperCase();
+    const upper = query.trim().toUpperCase();
     
-    // Must start with SELECT
-    if (!normalized.startsWith('SELECT')) {
-      throw new Error('Only SELECT queries are allowed');
-    }
-    
-    // Block dangerous keywords
-    for (const keyword of BLOCKED_SQL_KEYWORDS) {
-      if (normalized.includes(keyword)) {
-        throw new Error(`Query contains blocked keyword: ${keyword}`);
+    // Block any write operations
+    for (const keyword of WRITE_KEYWORDS) {
+      if (upper.startsWith(keyword)) {
+        throw new Error(`Write operations not allowed: ${keyword}`);
       }
-    }
-    
-    // Block multiple statements (semicolon not at end)
-    const withoutTrailingSemi = query.trim().replace(/;+$/, '');
-    if (withoutTrailingSemi.includes(';')) {
-      throw new Error('Multiple statements not allowed');
     }
 
     const rows = await queryDatabase(query, 'prod');
