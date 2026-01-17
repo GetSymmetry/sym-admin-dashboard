@@ -121,20 +121,35 @@ export const LLM_PRICING = {
  * Service name mappings from raw Azure names to friendly display names.
  */
 export const SERVICE_NAME_MAPPINGS: Record<string, string> = {
+  // Backend
   'uvicorn': 'Symmetry Backend',
   'symmetry-backend': 'Symmetry Backend',
   'asp-sym-backend-prod': 'Symmetry Backend',
   'asp-sym-backend-test': 'Symmetry Backend',
   'app-sym-backend-prod': 'Symmetry Backend',
   'app-sym-backend-test': 'Symmetry Backend',
+  'app-sym-backend': 'Symmetry Backend',
+  
+  // AI Features API
   'ai-features-api': 'AI Features API',
   'asp-ai-features-prod': 'AI Features API',
   'asp-ai-features-test': 'AI Features API',
   'app-sym-ai-features-prod': 'AI Features API',
   'app-sym-ai-features-test': 'AI Features API',
+  'app-sym-ai-features': 'AI Features API',
+  'ai_features_api': 'AI Features API',
+  'aifeatures': 'AI Features API',
+  
+  // Convo Processor (Azure Functions)
   'ai-convo-processor': 'Convo Processor',
   'func-sym-processor-prod': 'Convo Processor',
   'func-sym-processor-test': 'Convo Processor',
+  'func-sym-processor': 'Convo Processor',
+  'ai_convo_processor': 'Convo Processor',
+  '__main__.py': 'Convo Processor', // Python Azure Functions default name
+  '__main__': 'Convo Processor',
+  'function_app': 'Convo Processor',
+  'function_app.py': 'Convo Processor',
 };
 
 /**
@@ -143,19 +158,50 @@ export const SERVICE_NAME_MAPPINGS: Record<string, string> = {
 export function mapServiceName(rawName: string): string {
   if (!rawName) return 'Unknown';
   
-  const lower = rawName.toLowerCase();
+  const lower = rawName.toLowerCase().trim();
   
   // Check exact match
   if (SERVICE_NAME_MAPPINGS[lower]) {
     return SERVICE_NAME_MAPPINGS[lower];
   }
   
-  // Check partial matches
-  for (const [key, value] of Object.entries(SERVICE_NAME_MAPPINGS)) {
-    if (lower.includes(key.toLowerCase())) {
-      return value;
+  // Check partial matches (order matters - more specific first)
+  const partialMatches = [
+    { pattern: 'ai-features', name: 'AI Features API' },
+    { pattern: 'ai_features', name: 'AI Features API' },
+    { pattern: 'aifeatures', name: 'AI Features API' },
+    { pattern: 'processor', name: 'Convo Processor' },
+    { pattern: 'func-sym', name: 'Convo Processor' },
+    { pattern: '__main__', name: 'Convo Processor' },
+    { pattern: 'function_app', name: 'Convo Processor' },
+    { pattern: 'backend', name: 'Symmetry Backend' },
+    { pattern: 'uvicorn', name: 'Symmetry Backend' },
+  ];
+  
+  for (const { pattern, name } of partialMatches) {
+    if (lower.includes(pattern)) {
+      return name;
     }
   }
   
   return rawName;
+}
+
+/**
+ * Aggregate service metrics by mapped name.
+ * Combines counts for different raw names that map to the same display name.
+ */
+export function aggregateServiceMetrics(
+  services: Array<{ service: string; count: number }>
+): Array<{ service: string; count: number }> {
+  const aggregated = new Map<string, number>();
+  
+  for (const { service, count } of services) {
+    const current = aggregated.get(service) || 0;
+    aggregated.set(service, current + count);
+  }
+  
+  return Array.from(aggregated.entries())
+    .map(([service, count]) => ({ service, count }))
+    .sort((a, b) => b.count - a.count);
 }

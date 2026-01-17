@@ -10,6 +10,7 @@ import {
   getServiceBusMetrics,
   getAllServicesStatus,
   mapServiceName,
+  aggregateServiceMetrics,
   APP_INSIGHTS_QUERIES,
 } from '@/lib/api';
 import type { MetricsResponse, ServiceMetrics, LLMModelMetrics, RecentError, PerformanceMetrics } from '@/types/metrics';
@@ -62,8 +63,8 @@ export async function GET(request: Request) {
       queryAppInsights(APP_INSIGHTS_QUERIES.performanceFromRequests(timeRange, 10), env, timeRange.isoDuration),
     ]);
 
-    // Transform requests data
-    const requestsData: ServiceMetrics[] = Array.isArray(requestsFromRequests)
+    // Transform requests data and aggregate by mapped service name
+    const requestsDataRaw: ServiceMetrics[] = Array.isArray(requestsFromRequests)
       ? requestsFromRequests
           .filter((row) => row[0])
           .map((row) => ({
@@ -73,7 +74,7 @@ export async function GET(request: Request) {
       : [];
 
     // Fallback to traces if no requests data
-    const traceServiceData: ServiceMetrics[] = Array.isArray(requestsByService)
+    const traceServiceDataRaw: ServiceMetrics[] = Array.isArray(requestsByService)
       ? requestsByService
           .filter((row) => row[0] && row[0] !== 'Unknown')
           .map((row) => ({
@@ -81,6 +82,10 @@ export async function GET(request: Request) {
             count: Number(row[1]) || 0,
           }))
       : [];
+
+    // Aggregate to combine duplicate mapped names (e.g., multiple raw names -> "Convo Processor")
+    const requestsData = aggregateServiceMetrics(requestsDataRaw);
+    const traceServiceData = aggregateServiceMetrics(traceServiceDataRaw);
 
     const finalRequestsData = requestsData.length > 0 ? requestsData : traceServiceData;
 

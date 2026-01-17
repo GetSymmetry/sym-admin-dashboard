@@ -13,6 +13,7 @@ export {
   getDatabaseConfig,
   getAzureOpenAIConfig,
   mapServiceName,
+  aggregateServiceMetrics,
   SERVICE_NAME_MAPPINGS,
   LLM_PRICING,
 } from './config';
