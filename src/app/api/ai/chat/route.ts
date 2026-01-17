@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { execSync } from 'child_process';
+import { NextResponse } from 'next/server';
+import { queryDatabase, queryAppInsights, getServiceBusMetrics } from '@/lib/api';
 
 // Azure OpenAI configuration
 const AZURE_OPENAI_ENDPOINT = process.env.AZURE_OPENAI_ENDPOINT;
@@ -310,48 +310,37 @@ const tools = [
   },
 ];
 
+// Blocked SQL keywords (case-insensitive)
+const BLOCKED_SQL_KEYWORDS = [
+  'INSERT', 'UPDATE', 'DELETE', 'DROP', 'TRUNCATE', 'ALTER', 'CREATE',
+  'GRANT', 'REVOKE', 'EXECUTE', 'EXEC', 'INTO', '--', ';', 'COPY',
+];
+
 // Tool execution functions
 async function executeSql(query: string): Promise<unknown> {
-  const dbHost = process.env.PROD_DB_HOST;
-  const dbUser = process.env.PROD_DB_USER;
-  const dbPassword = process.env.PROD_DB_PASSWORD;
-  const dbName = process.env.PROD_DB_NAME;
-
   try {
-    // Sanitize query - only allow SELECT
-    if (!query.trim().toUpperCase().startsWith('SELECT')) {
+    const normalized = query.trim().toUpperCase();
+    
+    // Must start with SELECT
+    if (!normalized.startsWith('SELECT')) {
       throw new Error('Only SELECT queries are allowed');
     }
-
-    const result = execSync(
-      `PGPASSWORD="${dbPassword}" psql -h ${dbHost} -U ${dbUser} -d ${dbName} -t -A -F '|' -c "${query.replace(/"/g, '\\"')}"`,
-      { encoding: 'utf-8', timeout: 30000 }
-    );
-
-    // Parse the pipe-delimited result
-    const lines = result.trim().split('\n').filter(l => l);
-    if (lines.length === 0) return { rows: [], count: 0 };
-
-    // Get column names from the query (simple extraction)
-    const columnMatch = query.match(/SELECT\s+([\s\S]+?)\s+FROM/i);
-    let columns: string[] = [];
-    if (columnMatch) {
-      columns = columnMatch[1].split(',').map(c => {
-        const asMatch = c.match(/AS\s+["']?(\w+)["']?/i);
-        if (asMatch) return asMatch[1];
-        const cleaned = c.trim().split('.').pop() || c.trim();
-        return cleaned.replace(/[()]/g, '').split(' ')[0];
-      });
+    
+    // Block dangerous keywords
+    for (const keyword of BLOCKED_SQL_KEYWORDS) {
+      if (normalized.includes(keyword)) {
+        throw new Error(`Query contains blocked keyword: ${keyword}`);
+      }
+    }
+    
+    // Block multiple statements (semicolon not at end)
+    const withoutTrailingSemi = query.trim().replace(/;+$/, '');
+    if (withoutTrailingSemi.includes(';')) {
+      throw new Error('Multiple statements not allowed');
     }
 
-    const rows = lines.map(line => {
-      const values = line.split('|');
-      const row: Record<string, unknown> = {};
-      columns.forEach((col, i) => {
-        row[col] = values[i] || null;
-      });
-      return row;
-    });
+    const rows = await queryDatabase(query, 'prod');
+    const columns = rows.length > 0 ? Object.keys(rows[0] as object) : [];
 
     return { rows, count: rows.length, columns };
   } catch (error) {
@@ -359,27 +348,22 @@ async function executeSql(query: string): Promise<unknown> {
   }
 }
 
-async function executeKql(query: string): Promise<unknown> {
-  const appInsights = process.env.PROD_APP_INSIGHTS || 'ai-asp-sym-prod-centralus';
-  const resourceGroup = process.env.PROD_RESOURCE_GROUP || 'rg-sym-prod-centralus';
-
+async function executeKql(query: string, timeRange = '24h'): Promise<unknown> {
   try {
-    const result = execSync(
-      `az monitor app-insights query --app ${appInsights} --resource-group ${resourceGroup} --analytics-query "${query.replace(/"/g, '\\"')}" --query "tables[0]" -o json`,
-      { encoding: 'utf-8', timeout: 60000 }
-    );
+    // Convert time range to ISO 8601 duration
+    const durationMap: Record<string, string> = {
+      '1h': 'PT1H',
+      '24h': 'P1D',
+      '7d': 'P7D',
+      '30d': 'P30D',
+    };
+    const duration = durationMap[timeRange] || 'P1D';
 
-    const data = JSON.parse(result);
-    const columns = data.columns?.map((c: { name: string }) => c.name) || [];
-    const rows = (data.rows || []).map((row: unknown[]) => {
-      const obj: Record<string, unknown> = {};
-      columns.forEach((col: string, i: number) => {
-        obj[col] = row[i];
-      });
-      return obj;
-    });
-
-    return { rows, count: rows.length, columns };
+    const rows = await queryAppInsights(query, 'prod', duration);
+    
+    // queryAppInsights returns array of row arrays, convert to objects
+    // For now, return as-is since the LLM can interpret the raw data
+    return { rows, count: rows.length };
   } catch (error) {
     return { error: String(error), rows: [], count: 0 };
   }
@@ -387,9 +371,20 @@ async function executeKql(query: string): Promise<unknown> {
 
 async function getLlmMetrics(timeRange = '24h'): Promise<unknown> {
   try {
+    // Determine base URL from env or Vercel system vars
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL 
+      || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
+      || 'http://localhost:3000';
+    
     const response = await fetch(
-      `http://localhost:3000/api/llm?env=prod&range=${timeRange}`
+      `${baseUrl}/api/llm?env=prod&range=${timeRange}`,
+      { cache: 'no-store' }
     );
+    
+    if (!response.ok) {
+      throw new Error(`LLM API returned ${response.status}`);
+    }
+    
     return await response.json();
   } catch (error) {
     return { error: String(error) };
@@ -398,11 +393,8 @@ async function getLlmMetrics(timeRange = '24h'): Promise<unknown> {
 
 async function getServiceBusStatus(): Promise<unknown> {
   try {
-    const result = execSync(
-      `az servicebus queue list --namespace-name sb-sym-prod-centralus --resource-group rg-sym-prod-centralus --query "[].{name:name, active:countDetails.activeMessageCount, deadLetter:countDetails.deadLetterMessageCount}" -o json`,
-      { encoding: 'utf-8', timeout: 30000 }
-    );
-    return { queues: JSON.parse(result) };
+    const queues = await getServiceBusMetrics('prod');
+    return { queues };
   } catch (error) {
     return { error: String(error), queues: [] };
   }
@@ -462,8 +454,16 @@ async function callAzureOpenAI(messages: Array<{role: string; content: string; t
   return await response.json();
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
+    // Check required config
+    if (!AZURE_OPENAI_ENDPOINT || !AZURE_OPENAI_API_KEY) {
+      return NextResponse.json(
+        { error: 'Azure OpenAI not configured' },
+        { status: 503 }
+      );
+    }
+
     const { messages: userMessages } = await request.json();
 
     if (!userMessages || !Array.isArray(userMessages)) {
@@ -520,30 +520,60 @@ export async function POST(request: NextRequest) {
 
     // Try to parse as JSON response format
     let parsedResponse: { message: string; ui: unknown[] };
+    
+    // Helper to extract first complete JSON object using brace counting
+    function extractFirstJson(str: string): string | null {
+      const start = str.indexOf('{');
+      if (start === -1) return null;
+      
+      let depth = 0;
+      let inString = false;
+      let escape = false;
+      
+      for (let i = start; i < str.length; i++) {
+        const char = str[i];
+        
+        if (escape) {
+          escape = false;
+          continue;
+        }
+        
+        if (char === '\\') {
+          escape = true;
+          continue;
+        }
+        
+        if (char === '"') {
+          inString = !inString;
+          continue;
+        }
+        
+        if (!inString) {
+          if (char === '{') depth++;
+          if (char === '}') {
+            depth--;
+            if (depth === 0) {
+              return str.substring(start, i + 1);
+            }
+          }
+        }
+      }
+      return null;
+    }
+    
     try {
-      // Try to parse the whole content as JSON first
-      const trimmed = content.trim();
-      if (trimmed.startsWith('{')) {
-        const parsed = JSON.parse(trimmed);
+      // Extract the first complete JSON object (handles multiple concatenated JSONs)
+      const jsonStr = extractFirstJson(content);
+      
+      if (jsonStr) {
+        const parsed = JSON.parse(jsonStr);
         parsedResponse = {
           message: parsed.message || '',
           ui: Array.isArray(parsed.ui) ? parsed.ui : []
         };
       } else {
-        // Content has text before JSON - try to find JSON
-        const jsonStart = content.indexOf('{');
-        if (jsonStart !== -1) {
-          const jsonPart = content.substring(jsonStart);
-          const parsed = JSON.parse(jsonPart);
-          // Get any text before the JSON as additional context
-          const textBefore = content.substring(0, jsonStart).trim();
-          parsedResponse = {
-            message: textBefore ? `${textBefore}\n\n${parsed.message || ''}`.trim() : (parsed.message || ''),
-            ui: Array.isArray(parsed.ui) ? parsed.ui : []
-          };
-        } else {
-          parsedResponse = { message: content, ui: [] };
-        }
+        // No JSON found - return content as message
+        parsedResponse = { message: content, ui: [] };
       }
     } catch (e) {
       console.error('JSON parse error:', e, 'Content:', content.substring(0, 500));
