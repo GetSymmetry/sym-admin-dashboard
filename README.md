@@ -1,36 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Symmetry Admin Dashboard
+
+🚀 **Internal observability dashboard** for monitoring Symmetry's Azure production environment.
+
+![Dashboard Preview](/.ai-tasks/2026-01-17-internal-dashboard/dashboard-collapsed.png)
+
+## Features
+
+✅ **Real-time Azure Metrics**
+- Request volume & error rates from App Insights
+- LLM usage (tokens, costs) per model
+- Service Bus queue depth & dead letters
+- Service health status
+
+✅ **Beautiful Dark UI**
+- Modern glassmorphism design
+- Responsive grid layout
+- Real-time data refresh
+
+✅ **Environment Switching**
+- Toggle between PROD and TEST environments
+- Clear visual indicators
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev -- -p 3001
+
+# Open http://localhost:3001
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Prerequisites
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Azure CLI logged in with access to:
+  - `ai-asp-sym-prod-centralus` (App Insights)
+  - `sb-sym-prod-centralus` (Service Bus)
+  - `rg-sym-prod-centralus` (Resource Group)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## API Routes
 
-## Learn More
+| Endpoint | Description |
+|----------|-------------|
+| `GET /api/metrics?env=prod` | Fetches all dashboard metrics |
 
-To learn more about Next.js, take a look at the following resources:
+## Tech Stack
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Next.js 16** - React framework
+- **Tailwind CSS** - Styling
+- **Recharts** - Charts
+- **SWR** - Data fetching
+- **Lucide Icons** - Icons
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Project Structure
 
-## Deploy on Vercel
+```
+src/
+├── app/
+│   ├── api/
+│   │   └── metrics/    # Azure data endpoints
+│   ├── page.tsx        # Main dashboard
+│   └── layout.tsx      # Root layout
+├── components/
+│   ├── charts/         # Recharts wrappers
+│   ├── dashboard/      # Dashboard widgets
+│   ├── layout/         # Sidebar, Header
+│   └── ui/             # Reusable UI components
+├── hooks/
+│   └── useMetrics.ts   # Data fetching hook
+└── lib/
+    └── utils.ts        # Utility functions
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Roadmap
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [ ] Database metrics (PostgreSQL user counts, KU counts)
+- [ ] Deployment tracking (versions, timestamps)
+- [ ] Historical data charts
+- [ ] Alert thresholds
+- [ ] AI-powered prompt generation (json-render)
+
+---
+
+Built for Symmetry internal use 🔒
