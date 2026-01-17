@@ -1,86 +1,116 @@
 # Symmetry Admin Dashboard
 
-🚀 **Internal observability dashboard** for monitoring Symmetry's Azure production environment.
+Internal observability dashboard for monitoring Symmetry's Azure infrastructure and databases.
 
-![Dashboard Preview](/.ai-tasks/2026-01-17-internal-dashboard/dashboard-collapsed.png)
+**Production URL**: https://sym-admin-dashboard.vercel.app
 
 ## Features
 
-✅ **Real-time Azure Metrics**
-- Request volume & error rates from App Insights
-- LLM usage (tokens, costs) per model
-- Service Bus queue depth & dead letters
-- Service health status
+- **Infrastructure Metrics** - Request volume, error rates, service health from App Insights
+- **Database Metrics** - PostgreSQL stats, user counts, job status, table sizes
+- **LLM Analytics** - Token usage, costs per model, call trends
+- **Error Tracking** - Recent errors, error trends, top failing endpoints
+- **AI Assistant** - Natural language queries to explore your data
+- **Environment Toggle** - Switch between PROD and TEST environments
 
-✅ **Beautiful Dark UI**
-- Modern glassmorphism design
-- Responsive grid layout
-- Real-time data refresh
-
-✅ **Environment Switching**
-- Toggle between PROD and TEST environments
-- Clear visual indicators
-
-## Getting Started
+## Quick Start
 
 ```bash
 # Install dependencies
 npm install
 
-# Start development server
-npm run dev -- -p 3001
+# Copy env template and fill in values
+cp env.template .env.local
 
-# Open http://localhost:3001
+# Start development server
+npm run dev
 ```
 
-## Prerequisites
+Open http://localhost:3000
 
-- Azure CLI logged in with access to:
-  - `ai-asp-sym-prod-centralus` (App Insights)
-  - `sb-sym-prod-centralus` (Service Bus)
-  - `rg-sym-prod-centralus` (Resource Group)
+## Environment Variables
+
+All configuration is via environment variables. See `env.template` for the full list.
+
+**Required:**
+- `AZURE_TENANT_ID`, `AZURE_CLIENT_ID`, `AZURE_CLIENT_SECRET` - Service Principal
+- `AZURE_SUBSCRIPTION_ID` - Azure subscription
+- `PROD_DATABASE_URL`, `TEST_DATABASE_URL` - PostgreSQL connection strings
+- `PROD_APP_INSIGHTS_WORKSPACE_ID`, `TEST_APP_INSIGHTS_WORKSPACE_ID` - Log Analytics workspace IDs
+- `PROD_RESOURCE_GROUP`, `TEST_RESOURCE_GROUP` - Resource group names
+- `PROD_APP_INSIGHTS`, `TEST_APP_INSIGHTS` - App Insights resource names
+- `PROD_SERVICE_BUS`, `TEST_SERVICE_BUS` - Service Bus namespace names
+
+**For AI Chat:**
+- `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY`, `AZURE_OPENAI_DEPLOYMENT`
+- `AZURE_OPENAI_RESOURCE`, `AZURE_OPENAI_RG`
+
+## Pages
+
+| Page | URL | Description |
+|------|-----|-------------|
+| Overview | `/` | Infrastructure metrics, service health, queues |
+| Database | `/database` | PostgreSQL stats, table sizes, slow queries |
+| LLM | `/llm` | Token usage, costs, model breakdown |
+| Errors | `/errors` | Error trends, recent errors, top endpoints |
+| Deployments | `/deployments` | Deployment history (coming soon) |
+| AI Assistant | `/ai` | Natural language data exploration |
 
 ## API Routes
 
 | Endpoint | Description |
 |----------|-------------|
-| `GET /api/metrics?env=prod` | Fetches all dashboard metrics |
+| `GET /api/metrics?env=prod&range=24h` | Infrastructure metrics |
+| `GET /api/database?env=prod&range=24h` | Database metrics |
+| `GET /api/llm?env=prod&range=24h` | LLM usage metrics |
+| `GET /api/errors?env=prod&range=24h` | Error analytics |
+| `POST /api/ai/chat` | AI assistant queries |
 
 ## Tech Stack
 
-- **Next.js 16** - React framework
+- **Next.js 16** - React framework with App Router
 - **Tailwind CSS** - Styling
-- **Recharts** - Charts
-- **SWR** - Data fetching
-- **Lucide Icons** - Icons
+- **Recharts** - Charts and visualizations
+- **SWR** - Data fetching with caching
+- **Azure SDKs** - `@azure/monitor-query`, `@azure/identity`, `@azure/service-bus`
+- **pg** - PostgreSQL client
 
 ## Project Structure
 
 ```
 src/
 ├── app/
-│   ├── api/
-│   │   └── metrics/    # Azure data endpoints
-│   ├── page.tsx        # Main dashboard
-│   └── layout.tsx      # Root layout
+│   ├── api/           # API routes (metrics, database, llm, errors, ai)
+│   ├── page.tsx       # Overview page
+│   ├── database/      # Database metrics page
+│   ├── llm/           # LLM analytics page
+│   ├── errors/        # Error tracking page
+│   └── ai/            # AI assistant page
 ├── components/
-│   ├── charts/         # Recharts wrappers
-│   ├── dashboard/      # Dashboard widgets
-│   ├── layout/         # Sidebar, Header
-│   └── ui/             # Reusable UI components
+│   ├── ai/            # AI chat components
+│   ├── charts/        # Recharts wrappers
+│   ├── dashboard/     # Dashboard widgets
+│   ├── layout/        # Sidebar, Header
+│   └── ui/            # Reusable UI components
 ├── hooks/
-│   └── useMetrics.ts   # Data fetching hook
-└── lib/
-    └── utils.ts        # Utility functions
+│   ├── useMetrics.ts  # Metrics data hook
+│   └── useDashboardData.ts  # Unified data hook
+├── lib/
+│   └── api/           # Shared API utilities
+│       ├── config.ts  # Environment configuration
+│       ├── azure.ts   # Azure SDK operations
+│       ├── database.ts # PostgreSQL operations
+│       ├── cache.ts   # LRU caching
+│       └── queries/   # Query definitions
+└── types/
+    └── metrics.ts     # TypeScript interfaces
 ```
 
-## Roadmap
+## Deployment
 
-- [ ] Database metrics (PostgreSQL user counts, KU counts)
-- [ ] Deployment tracking (versions, timestamps)
-- [ ] Historical data charts
-- [ ] Alert thresholds
-- [ ] AI-powered prompt generation (json-render)
+Deployed on Vercel with CI/CD from GitHub:
+- Push to `main` → Production deployment
+- Pull requests → Preview deployments
 
 ---
 
