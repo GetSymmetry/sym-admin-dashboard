@@ -11,7 +11,7 @@ import { QueueStatus } from '@/components/dashboard/QueueStatus';
 import { AreaChart } from '@/components/charts/AreaChart';
 import { BarChart } from '@/components/charts/BarChart';
 import { Card } from '@/components/ui/Card';
-import { timeAgo } from '@/lib/utils';
+import { timeAgo, displayValue, formatCurrency } from '@/lib/utils';
 import { useDashboardState } from '@/hooks/useDashboardState';
 import useSWR from 'swr';
 import {
@@ -137,40 +137,45 @@ function DashboardContent() {
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
                 <MetricCard
                   title="Total Users"
-                  value={dbData?.counts?.users || 0}
+                  value={displayValue(dbData?.counts?.users)}
                   icon={Users}
                   subtitle="Registered users"
                 />
                 <MetricCard
                   title="Workspaces"
-                  value={dbData?.counts?.workspaces || 0}
+                  value={displayValue(dbData?.counts?.workspaces)}
                   icon={Briefcase}
-                  subtitle={`${dbData?.counts?.organizations || 0} orgs`}
+                  subtitle={dbData?.counts?.organizations != null ? `${dbData.counts.organizations} orgs` : '—'}
                 />
                 <MetricCard
                   title="Knowledge Units"
-                  value={dbData?.counts?.knowledgeUnits || 0}
+                  value={displayValue(dbData?.counts?.knowledgeUnits)}
                   icon={Database}
                   subtitle="Total KUs"
                 />
                 <MetricCard
                   title="Conversations"
-                  value={dbData?.counts?.conversations || 0}
+                  value={displayValue(dbData?.counts?.conversations)}
                   icon={MessageSquare}
                   subtitle="Chat sessions"
                 />
                 <MetricCard
                   title={`LLM Cost (${formatTimeRange(timeRange)})`}
-                  value={llmData?.totals?.totalCost || data?.overview?.llmCost24h || 0}
-                  format="currency"
+                  value={llmData?.totals?.totalCost != null || data?.overview?.llmCost24h != null
+                    ? formatCurrency(llmData?.totals?.totalCost ?? data?.overview?.llmCost24h ?? 0)
+                    : '—'}
                   icon={DollarSign}
-                  subtitle={`${(llmData?.totals?.totalCalls || data?.overview?.llmCalls24h || 0).toLocaleString()} calls`}
+                  subtitle={llmData?.totals?.totalCalls != null || data?.overview?.llmCalls24h != null
+                    ? `${(llmData?.totals?.totalCalls ?? data?.overview?.llmCalls24h ?? 0).toLocaleString()} calls`
+                    : '—'}
                 />
                 <MetricCard
                   title={`Errors (${formatTimeRange(timeRange)})`}
-                  value={data?.overview?.totalErrors || 0}
+                  value={displayValue(data?.overview?.totalErrors)}
                   icon={AlertTriangle}
-                  subtitle={data?.overview?.totalErrors ? 'Needs attention' : 'All clear'}
+                  subtitle={data?.overview?.totalErrors != null 
+                    ? (data.overview.totalErrors > 0 ? 'Needs attention' : 'All clear')
+                    : '—'}
                 />
               </div>
 

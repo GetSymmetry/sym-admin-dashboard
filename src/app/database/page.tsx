@@ -7,7 +7,7 @@ import { Header } from '@/components/layout/Header';
 import { Card } from '@/components/ui/Card';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { Gauge } from '@/components/ui/Gauge';
-import { cn, timeAgo } from '@/lib/utils';
+import { cn, timeAgo, displayValue } from '@/lib/utils';
 import { useDashboardState } from '@/hooks/useDashboardState';
 import {
   Database,
@@ -111,35 +111,37 @@ function DatabaseContent() {
               <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
                 <MetricCard
                   title="Health Score"
-                  value={data?.health?.score || 0}
+                  value={displayValue(data?.health?.score)}
                   icon={Activity}
-                  iconColor={getStatusColor(data?.health?.status)}
-                  subtitle={data?.health?.status?.toUpperCase()}
+                  iconColor={getStatusColor(data?.health?.status || '')}
+                  subtitle={data?.health?.status?.toUpperCase() || '—'}
                 />
                 <MetricCard
                   title="Database Size"
-                  value={`${data?.health?.dbSizeMb || 0} MB`}
+                  value={data?.health?.dbSizeMb != null ? `${data.health.dbSizeMb} MB` : '—'}
                   icon={HardDrive}
                   iconColor="text-brand-blue"
                   subtitle="Total storage"
                 />
                 <MetricCard
                   title="Cache Hit Ratio"
-                  value={`${data?.cache?.hitRatio || 0}%`}
+                  value={data?.cache?.hitRatio != null ? `${data.cache.hitRatio}%` : '—'}
                   icon={Zap}
-                  iconColor={getStatusColor(data?.cache?.status)}
-                  subtitle={data?.cache?.status}
+                  iconColor={getStatusColor(data?.cache?.status || '')}
+                  subtitle={data?.cache?.status || '—'}
                 />
                 <MetricCard
                   title="Active Queries"
-                  value={data?.health?.activeQueries || 0}
+                  value={displayValue(data?.health?.activeQueries)}
                   icon={Search}
                   iconColor="text-brand-blue"
-                  subtitle={`${data?.health?.waitingQueries || 0} waiting`}
+                  subtitle={data?.health?.waitingQueries != null ? `${data.health.waitingQueries} waiting` : '—'}
                 />
                 <MetricCard
                   title="Uptime"
-                  value={`${Math.floor((data?.health?.uptimeHours || 0) / 24)}d ${(data?.health?.uptimeHours || 0) % 24}h`}
+                  value={data?.health?.uptimeHours != null 
+                    ? `${Math.floor(data.health.uptimeHours / 24)}d ${data.health.uptimeHours % 24}h` 
+                    : '—'}
                   icon={Clock}
                   iconColor="text-info"
                   subtitle="Since restart"
@@ -154,7 +156,7 @@ function DatabaseContent() {
                       <Users className="w-5 h-5 text-brand-blue" />
                     </div>
                     <p className="text-2xl font-mono text-brand-blue">
-                      {data?.activity?.newUsers || 0}
+                      {displayValue(data?.activity?.newUsers)}
                     </p>
                     <p className="text-xs text-text-muted mt-1">New Users</p>
                   </div>
@@ -163,7 +165,7 @@ function DatabaseContent() {
                       <MessageSquare className="w-5 h-5 text-success" />
                     </div>
                     <p className="text-2xl font-mono text-success">
-                      {data?.activity?.newConversations || 0}
+                      {displayValue(data?.activity?.newConversations)}
                     </p>
                     <p className="text-xs text-text-muted mt-1">Conversations</p>
                   </div>
@@ -172,7 +174,7 @@ function DatabaseContent() {
                       <FileText className="w-5 h-5 text-info" />
                     </div>
                     <p className="text-2xl font-mono text-info">
-                      {data?.activity?.newMessages || 0}
+                      {displayValue(data?.activity?.newMessages)}
                     </p>
                     <p className="text-xs text-text-muted mt-1">Messages</p>
                   </div>
@@ -181,7 +183,7 @@ function DatabaseContent() {
                       <Database className="w-5 h-5 text-info" />
                     </div>
                     <p className="text-2xl font-mono text-info">
-                      {data?.activity?.newKUs || 0}
+                      {displayValue(data?.activity?.newKUs)}
                     </p>
                     <p className="text-xs text-text-muted mt-1">Knowledge Units</p>
                   </div>
@@ -190,7 +192,7 @@ function DatabaseContent() {
                       <Briefcase className="w-5 h-5 text-warning" />
                     </div>
                     <p className="text-2xl font-mono text-warning">
-                      {data?.activity?.newJobs || 0}
+                      {displayValue(data?.activity?.newJobs)}
                     </p>
                     <p className="text-xs text-text-muted mt-1">Jobs Created</p>
                   </div>
@@ -205,31 +207,35 @@ function DatabaseContent() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <Gauge
-                          value={(data?.health?.totalConnections || 0) / 100}
+                          value={data?.health?.totalConnections != null ? data.health.totalConnections / 100 : 0}
                           size={60}
-                          color={getGaugeColor(100 - (data?.health?.totalConnections || 0), { good: 50, warning: 20 })}
+                          color={getGaugeColor(100 - (data?.health?.totalConnections ?? 0), { good: 50, warning: 20 })}
                         />
                         <div>
-                          <p className="text-2xl font-bold text-text-primary">{data?.health?.totalConnections || 0}</p>
+                          <p className="text-2xl font-bold text-text-primary">{displayValue(data?.health?.totalConnections)}</p>
                           <p className="text-xs text-text-muted">Total Connections</p>
                         </div>
                       </div>
                     </div>
                     
                     <div className="space-y-2">
-                      {data?.connections?.byState?.map((conn: any, i: number) => (
-                        <div key={i} className="flex items-center justify-between text-sm">
-                          <span className="text-text-muted capitalize">{conn.state || 'unknown'}</span>
-                          <div className="flex items-center gap-3">
-                            <span className="text-text-primary font-mono">{conn.count}</span>
-                            {conn.maxDurationSec > 60 && (
-                              <span className="text-xs text-warning">
-                                max {Math.round(conn.maxDurationSec / 60)}m
-                              </span>
-                            )}
+                      {data?.connections?.byState?.length ? (
+                        data.connections.byState.map((conn: any, i: number) => (
+                          <div key={i} className="flex items-center justify-between text-sm">
+                            <span className="text-text-muted capitalize">{conn.state || 'unknown'}</span>
+                            <div className="flex items-center gap-3">
+                              <span className="text-text-primary font-mono">{conn.count}</span>
+                              {conn.maxDurationSec > 60 && (
+                                <span className="text-xs text-warning">
+                                  max {Math.round(conn.maxDurationSec / 60)}m
+                                </span>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))
+                      ) : (
+                        <p className="text-text-muted text-sm text-center py-2">No connection data</p>
+                      )}
                     </div>
                   </div>
                 </Card>
@@ -239,24 +245,24 @@ function DatabaseContent() {
                   <div className="space-y-4">
                     <div className="flex items-center justify-center">
                       <Gauge
-                        value={data?.cache?.hitRatio || 0}
+                        value={data?.cache?.hitRatio ?? 0}
                         max={100}
                         size={120}
                         label="Hit Ratio"
-                        color={getGaugeColor(data?.cache?.hitRatio || 0, { good: 95, warning: 90 })}
+                        color={getGaugeColor(data?.cache?.hitRatio ?? 0, { good: 95, warning: 90 })}
                       />
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4 text-center">
                       <div className="p-3 bg-surface-tertiary rounded-lg">
                         <p className="text-lg font-mono text-success">
-                          {((data?.cache?.hits || 0) / 1000000).toFixed(1)}M
+                          {data?.cache?.hits != null ? `${(data.cache.hits / 1000000).toFixed(1)}M` : '—'}
                         </p>
                         <p className="text-xs text-text-muted">Cache Hits</p>
                       </div>
                       <div className="p-3 bg-surface-tertiary rounded-lg">
                         <p className="text-lg font-mono text-warning">
-                          {((data?.cache?.diskReads || 0) / 1000).toFixed(1)}K
+                          {data?.cache?.diskReads != null ? `${(data.cache.diskReads / 1000).toFixed(1)}K` : '—'}
                         </p>
                         <p className="text-xs text-text-muted">Disk Reads</p>
                       </div>
@@ -266,45 +272,52 @@ function DatabaseContent() {
 
                 {/* Query Stats */}
                 <Card title="Query Statistics">
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="p-3 bg-surface-tertiary rounded-lg text-center">
-                        <p className="text-xl font-mono text-brand-blue">
-                          {data?.queryStats?.totalQueryTypes || 0}
-                        </p>
-                        <p className="text-xs text-text-muted">Query Types</p>
+                  {data?.queryStats?.totalQueryTypes != null ? (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="p-3 bg-surface-tertiary rounded-lg text-center">
+                          <p className="text-xl font-mono text-brand-blue">
+                            {displayValue(data?.queryStats?.totalQueryTypes)}
+                          </p>
+                          <p className="text-xs text-text-muted">Query Types</p>
+                        </div>
+                        <div className="p-3 bg-surface-tertiary rounded-lg text-center">
+                          <p className="text-xl font-mono text-info">
+                            {data?.queryStats?.totalCalls != null ? `${(data.queryStats.totalCalls / 1000).toFixed(1)}K` : '—'}
+                          </p>
+                          <p className="text-xs text-text-muted">Total Calls</p>
+                        </div>
+                        <div className="p-3 bg-surface-tertiary rounded-lg text-center">
+                          <p className="text-xl font-mono text-info">
+                            {data?.queryStats?.avgQueryTimeMs != null ? `${data.queryStats.avgQueryTimeMs.toFixed(1)}ms` : '—'}
+                          </p>
+                          <p className="text-xs text-text-muted">Avg Time</p>
+                        </div>
+                        <div className="p-3 bg-surface-tertiary rounded-lg text-center">
+                          <p className="text-xl font-mono text-warning">
+                            {data?.queryStats?.totalExecMinutes != null ? `${data.queryStats.totalExecMinutes.toFixed(0)}m` : '—'}
+                          </p>
+                          <p className="text-xs text-text-muted">Total Exec</p>
+                        </div>
                       </div>
-                      <div className="p-3 bg-surface-tertiary rounded-lg text-center">
-                        <p className="text-xl font-mono text-info">
-                          {((data?.queryStats?.totalCalls || 0) / 1000).toFixed(1)}K
-                        </p>
-                        <p className="text-xs text-text-muted">Total Calls</p>
-                      </div>
-                      <div className="p-3 bg-surface-tertiary rounded-lg text-center">
-                        <p className="text-xl font-mono text-info">
-                          {data?.queryStats?.avgQueryTimeMs?.toFixed(1) || 0}ms
-                        </p>
-                        <p className="text-xs text-text-muted">Avg Time</p>
-                      </div>
-                      <div className="p-3 bg-surface-tertiary rounded-lg text-center">
-                        <p className="text-xl font-mono text-warning">
-                          {data?.queryStats?.totalExecMinutes?.toFixed(0) || 0}m
-                        </p>
-                        <p className="text-xs text-text-muted">Total Exec</p>
+                      
+                      {/* Locks */}
+                      <div className="pt-2 border-t border-border-subtle">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-text-muted flex items-center gap-2">
+                            <Lock size={14} />
+                            Active Locks
+                          </span>
+                          <span className="text-text-primary font-mono">{displayValue(data?.locks?.total)}</span>
+                        </div>
                       </div>
                     </div>
-                    
-                    {/* Locks */}
-                    <div className="pt-2 border-t border-border-subtle">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-text-muted flex items-center gap-2">
-                          <Lock size={14} />
-                          Active Locks
-                        </span>
-                        <span className="text-text-primary font-mono">{data?.locks?.total || 0}</span>
-                      </div>
+                  ) : (
+                    <div className="text-center py-8 text-text-muted">
+                      <p>No query statistics available</p>
+                      <p className="text-xs mt-1">(pg_stat_statements may not be enabled)</p>
                     </div>
-                  </div>
+                  )}
                 </Card>
               </div>
 
@@ -313,31 +326,31 @@ function DatabaseContent() {
                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
                   <div className="p-4 bg-surface-tertiary rounded-xl text-center">
                     <p className="text-2xl font-mono text-brand-blue">
-                      {((data?.operations?.returned || 0) / 1000000).toFixed(1)}M
+                      {data?.operations?.returned != null ? `${(data.operations.returned / 1000000).toFixed(1)}M` : '—'}
                     </p>
                     <p className="text-xs text-text-muted mt-1">Rows Returned</p>
                   </div>
                   <div className="p-4 bg-surface-tertiary rounded-xl text-center">
                     <p className="text-2xl font-mono text-info">
-                      {((data?.operations?.fetched || 0) / 1000000).toFixed(1)}M
+                      {data?.operations?.fetched != null ? `${(data.operations.fetched / 1000000).toFixed(1)}M` : '—'}
                     </p>
                     <p className="text-xs text-text-muted mt-1">Rows Fetched</p>
                   </div>
                   <div className="p-4 bg-surface-tertiary rounded-xl text-center">
                     <p className="text-2xl font-mono text-success">
-                      {((data?.operations?.inserted || 0) / 1000).toFixed(1)}K
+                      {data?.operations?.inserted != null ? `${(data.operations.inserted / 1000).toFixed(1)}K` : '—'}
                     </p>
                     <p className="text-xs text-text-muted mt-1">Rows Inserted</p>
                   </div>
                   <div className="p-4 bg-surface-tertiary rounded-xl text-center">
                     <p className="text-2xl font-mono text-warning">
-                      {((data?.operations?.updated || 0) / 1000).toFixed(1)}K
+                      {data?.operations?.updated != null ? `${(data.operations.updated / 1000).toFixed(1)}K` : '—'}
                     </p>
                     <p className="text-xs text-text-muted mt-1">Rows Updated</p>
                   </div>
                   <div className="p-4 bg-surface-tertiary rounded-xl text-center">
                     <p className="text-2xl font-mono text-error">
-                      {((data?.operations?.deleted || 0) / 1000).toFixed(1)}K
+                      {data?.operations?.deleted != null ? `${(data.operations.deleted / 1000).toFixed(1)}K` : '—'}
                     </p>
                     <p className="text-xs text-text-muted mt-1">Rows Deleted</p>
                   </div>
@@ -348,36 +361,40 @@ function DatabaseContent() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Table Sizes */}
                 <Card title="Table Statistics">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="text-text-muted text-left">
-                          <th className="pb-3 font-medium">Table</th>
-                          <th className="pb-3 font-medium text-right">Rows</th>
-                          <th className="pb-3 font-medium text-right">Size</th>
-                          <th className="pb-3 font-medium text-right">Dead %</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-border-subtle">
-                        {data?.tables?.slice(0, 10)?.map((table: any, i: number) => (
-                          <tr key={i} className="text-text-secondary">
-                            <td className="py-2 font-mono text-xs">{table.name}</td>
-                            <td className="py-2 text-right font-mono">
-                              {table.rowCount?.toLocaleString()}
-                            </td>
-                            <td className="py-2 text-right text-text-muted">{table.size}</td>
-                            <td className={cn(
-                              "py-2 text-right font-mono",
-                              table.deadTupleRatio > 10 ? 'text-error' : 
-                              table.deadTupleRatio > 5 ? 'text-warning' : 'text-text-muted'
-                            )}>
-                              {table.deadTupleRatio?.toFixed(1)}%
-                            </td>
+                  {data?.tables?.length ? (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="text-text-muted text-left">
+                            <th className="pb-3 font-medium">Table</th>
+                            <th className="pb-3 font-medium text-right">Rows</th>
+                            <th className="pb-3 font-medium text-right">Size</th>
+                            <th className="pb-3 font-medium text-right">Dead %</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                        </thead>
+                        <tbody className="divide-y divide-border-subtle">
+                          {data.tables.slice(0, 10).map((table: any, i: number) => (
+                            <tr key={i} className="text-text-secondary">
+                              <td className="py-2 font-mono text-xs">{table.name}</td>
+                              <td className="py-2 text-right font-mono">
+                                {table.rowCount?.toLocaleString() ?? '—'}
+                              </td>
+                              <td className="py-2 text-right text-text-muted">{table.size ?? '—'}</td>
+                              <td className={cn(
+                                "py-2 text-right font-mono",
+                                table.deadTupleRatio > 10 ? 'text-error' : 
+                                table.deadTupleRatio > 5 ? 'text-warning' : 'text-text-muted'
+                              )}>
+                                {table.deadTupleRatio?.toFixed(1) ?? '—'}%
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <p className="text-text-muted text-center py-8">No table data available</p>
+                  )}
                 </Card>
 
                 {/* Slow Queries */}
@@ -419,34 +436,38 @@ function DatabaseContent() {
 
               {/* Index Usage */}
               <Card title="Index Usage">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="text-text-muted text-left">
-                        <th className="pb-3 font-medium">Index</th>
-                        <th className="pb-3 font-medium">Table</th>
-                        <th className="pb-3 font-medium text-right">Scans</th>
-                        <th className="pb-3 font-medium text-right">Tuples Read</th>
-                        <th className="pb-3 font-medium text-right">Size</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border-subtle">
-                      {data?.indexes?.map((idx: any, i: number) => (
-                        <tr key={i} className="text-text-secondary">
-                          <td className="py-2 font-mono text-xs text-brand-blue">{idx.index}</td>
-                          <td className="py-2 font-mono text-xs text-text-muted">{idx.table}</td>
-                          <td className="py-2 text-right font-mono">
-                            {idx.scans?.toLocaleString()}
-                          </td>
-                          <td className="py-2 text-right font-mono text-text-muted">
-                            {idx.tuplesRead?.toLocaleString()}
-                          </td>
-                          <td className="py-2 text-right text-text-muted">{idx.size}</td>
+                {data?.indexes?.length ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="text-text-muted text-left">
+                          <th className="pb-3 font-medium">Index</th>
+                          <th className="pb-3 font-medium">Table</th>
+                          <th className="pb-3 font-medium text-right">Scans</th>
+                          <th className="pb-3 font-medium text-right">Tuples Read</th>
+                          <th className="pb-3 font-medium text-right">Size</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody className="divide-y divide-border-subtle">
+                        {data.indexes.map((idx: any, i: number) => (
+                          <tr key={i} className="text-text-secondary">
+                            <td className="py-2 font-mono text-xs text-brand-blue">{idx.index}</td>
+                            <td className="py-2 font-mono text-xs text-text-muted">{idx.table}</td>
+                            <td className="py-2 text-right font-mono">
+                              {idx.scans?.toLocaleString() ?? '—'}
+                            </td>
+                            <td className="py-2 text-right font-mono text-text-muted">
+                              {idx.tuplesRead?.toLocaleString() ?? '—'}
+                            </td>
+                            <td className="py-2 text-right text-text-muted">{idx.size ?? '—'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="text-text-muted text-center py-8">No index data available</p>
+                )}
               </Card>
             </>
           )}

@@ -96,3 +96,26 @@ export function getStatusBgColor(status: string): string {
       return 'bg-surface-tertiary border-border';
   }
 }
+
+/**
+ * Format a value for display, showing '—' for null/undefined.
+ * Useful for metrics that may not be loaded yet.
+ */
+export function displayValue(
+  value: number | string | null | undefined,
+  formatter?: (v: number) => string
+): string {
+  if (value === null || value === undefined) return '—';
+  if (typeof value === 'string') return value || '—';
+  if (formatter) return formatter(value);
+  return value.toLocaleString();
+}
+
+/**
+ * Check if data is actually loaded (not just default/empty values).
+ */
+export function hasData(obj: unknown): boolean {
+  if (obj === null || obj === undefined) return false;
+  if (typeof obj === 'object' && Object.keys(obj).length === 0) return false;
+  return true;
+}

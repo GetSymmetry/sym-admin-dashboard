@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/Card';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { AreaChart } from '@/components/charts/AreaChart';
 import { BarChart } from '@/components/charts/BarChart';
-import { cn, timeAgo } from '@/lib/utils';
+import { cn, timeAgo, displayValue } from '@/lib/utils';
 import { useDashboardState } from '@/hooks/useDashboardState';
 import { AlertTriangle, TrendingUp, TrendingDown, Server, ExternalLink } from 'lucide-react';
 
@@ -82,28 +82,29 @@ function ErrorsContent() {
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <MetricCard
                   title={`Total Errors (${timeRange})`}
-                  value={data?.summary?.totalErrors || 0}
+                  value={displayValue(data?.summary?.totalErrors)}
                   icon={AlertTriangle}
-                  iconColor={data?.summary?.totalErrors > 0 ? 'text-error' : 'text-success'}
+                  iconColor={data?.summary?.totalErrors != null && data.summary.totalErrors > 0 ? 'text-error' : 'text-success'}
                 />
                 <MetricCard
                   title="Trend vs Previous"
-                  value={`${data?.summary?.trend > 0 ? '+' : ''}${data?.summary?.trend?.toFixed(1) || 0}%`}
-                  format="raw"
-                  icon={data?.summary?.trend > 0 ? TrendingUp : TrendingDown}
-                  iconColor={data?.summary?.trend > 0 ? 'text-error' : 'text-success'}
+                  value={data?.summary?.trend != null 
+                    ? `${data.summary.trend > 0 ? '+' : ''}${data.summary.trend.toFixed(1)}%`
+                    : '—'}
+                  icon={data?.summary?.trend != null && data.summary.trend > 0 ? TrendingUp : TrendingDown}
+                  iconColor={data?.summary?.trend != null && data.summary.trend > 0 ? 'text-error' : 'text-success'}
                 />
                 <MetricCard
                   title="Services Affected"
-                  value={data?.byService?.length || 0}
-                  format="raw"
+                  value={displayValue(data?.byService?.length)}
                   icon={Server}
                   iconColor="text-brand-blue"
                 />
                 <MetricCard
                   title="Error Types"
-                  value={new Set(data?.byType?.map((e: { type: string }) => e.type)).size || 0}
-                  format="raw"
+                  value={data?.byType != null 
+                    ? new Set(data.byType.map((e: { type: string }) => e.type)).size.toString()
+                    : '—'}
                   icon={AlertTriangle}
                   iconColor="text-warning"
                 />

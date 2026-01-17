@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/Card';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { AreaChart } from '@/components/charts/AreaChart';
 import { BarChart } from '@/components/charts/BarChart';
-import { cn, formatCurrency, formatDuration, timeAgo } from '@/lib/utils';
+import { cn, formatCurrency, formatDuration, timeAgo, displayValue } from '@/lib/utils';
 import { useDashboardState } from '@/hooks/useDashboardState';
 import { DollarSign, Cpu, Clock, Zap, AlertTriangle, TrendingUp } from 'lucide-react';
 
@@ -70,27 +70,25 @@ function LLMContent() {
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <MetricCard
                   title={`Total Cost (${formatTimeRange(timeRange)})`}
-                  value={data?.totals?.totalCost || 0}
-                  format="currency"
+                  value={data?.totals?.totalCost != null ? formatCurrency(data.totals.totalCost) : '—'}
                   icon={DollarSign}
                   iconColor="text-warning"
                 />
                 <MetricCard
                   title={`Total Tokens (${formatTimeRange(timeRange)})`}
-                  value={data?.totals?.totalTokens || 0}
+                  value={displayValue(data?.totals?.totalTokens)}
                   icon={Cpu}
                   iconColor="text-info"
                 />
                 <MetricCard
                   title={`Total Calls (${formatTimeRange(timeRange)})`}
-                  value={data?.totals?.totalCalls || 0}
+                  value={displayValue(data?.totals?.totalCalls)}
                   icon={Zap}
                   iconColor="text-brand-blue"
                 />
                 <MetricCard
                   title="Models Used"
-                  value={data?.byModel?.length || 0}
-                  format="raw"
+                  value={displayValue(data?.byModel?.length)}
                   icon={TrendingUp}
                   iconColor="text-success"
                 />
