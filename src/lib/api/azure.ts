@@ -115,6 +115,56 @@ export async function queryAppInsights(
   }
 }
 
+/**
+ * Query Log Analytics workspace directly (not App Insights resource).
+ * Used for VM performance data (Perf table), Syslog, etc.
+ * The workspace ID is the same one used for App Insights.
+ */
+export async function queryLogAnalytics(
+  query: string,
+  env: Environment,
+  durationIso: string = 'P1D'
+): Promise<unknown[][]> {
+  try {
+    const config = getAzureConfig(env);
+    const client = getLogsClient();
+
+    const result = await client.queryWorkspace(
+      config.workspaceId,
+      query,
+      { duration: durationIso }
+    );
+
+    if (result.status === LogsQueryResultStatus.Success) {
+      return result.tables[0]?.rows || [];
+    } else if (result.status === LogsQueryResultStatus.PartialFailure) {
+      console.warn('Log Analytics query partial failure:', result.partialError);
+      return result.partialTables?.[0]?.rows || [];
+    }
+
+    return [];
+  } catch (error: unknown) {
+    const err = error as Error;
+    console.error('Log Analytics query failed:', {
+      message: err?.message || 'Unknown error',
+      name: err?.name,
+      env,
+    });
+    return [];
+  }
+}
+
+/**
+ * Get an auth token for Azure Management REST API calls.
+ * Used for APIs without a dedicated SDK (e.g., Alerts Management).
+ */
+export async function getManagementToken(): Promise<string> {
+  const cred = getCredential();
+  const token = await cred.getToken('https://management.azure.com/.default');
+  if (!token) throw new Error('Failed to get management token');
+  return token.token;
+}
+
 export interface QueueMetrics {
   name: string;
   active: number;

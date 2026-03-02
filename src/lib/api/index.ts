@@ -14,6 +14,9 @@ export {
   getAzureOpenAIConfig,
   mapServiceName,
   aggregateServiceMetrics,
+  getContainerAppNames,
+  getNeo4jVmName,
+  BUDGET_THRESHOLDS,
   SERVICE_NAME_MAPPINGS,
   LLM_PRICING,
 } from './config';
@@ -40,6 +43,10 @@ export {
   llmCache,
   errorsCache,
   deploymentsCache,
+  containerAppsCache,
+  neo4jCache,
+  alertsCache,
+  costsCache,
 } from './cache';
 
 // Azure SDK operations
@@ -47,11 +54,26 @@ export {
   type QueueMetrics,
   type ServiceStatus,
   queryAppInsights,
+  queryLogAnalytics,
+  getManagementToken,
   getServiceBusMetrics,
   getAppServiceStatus,
   getFunctionAppStatus,
   getAllServicesStatus,
 } from './azure';
+
+// Container Apps operations
+export {
+  listContainerApps,
+  listContainerAppRevisions,
+  getContainerAppMetrics,
+} from './azure-container-apps';
+
+// Azure Monitor operations
+export {
+  listAlertRules,
+  listFiredAlerts,
+} from './azure-monitor';
 
 // Database operations
 export {
@@ -63,4 +85,4 @@ export {
 } from './database';
 
 // Query definitions
-export { APP_INSIGHTS_QUERIES, DATABASE_QUERIES } from './queries';
+export { APP_INSIGHTS_QUERIES, LOG_ANALYTICS_QUERIES, DATABASE_QUERIES } from './queries';

@@ -130,7 +130,7 @@ export const SERVICE_NAME_MAPPINGS: Record<string, string> = {
   'app-sym-backend-test': 'Symmetry Backend',
   'app-sym-backend': 'Symmetry Backend',
   
-  // AI Features API
+  // AI Features API (also known as Retrieval Service)
   'ai-features-api': 'AI Features API',
   'asp-ai-features-prod': 'AI Features API',
   'asp-ai-features-test': 'AI Features API',
@@ -139,17 +139,31 @@ export const SERVICE_NAME_MAPPINGS: Record<string, string> = {
   'app-sym-ai-features': 'AI Features API',
   'ai_features_api': 'AI Features API',
   'aifeatures': 'AI Features API',
+  'sym-retrieval-service': 'AI Features API',
+  'symmetry-retrieval-api': 'AI Features API',
+  'symmetry retrieval api': 'AI Features API',
+  'retrieval-service': 'AI Features API',
+  'retrieval_service': 'AI Features API',
   
-  // Convo Processor (Azure Functions)
-  'ai-convo-processor': 'Convo Processor',
-  'func-sym-processor-prod': 'Convo Processor',
-  'func-sym-processor-test': 'Convo Processor',
-  'func-sym-processor': 'Convo Processor',
-  'ai_convo_processor': 'Convo Processor',
-  '__main__.py': 'Convo Processor', // Python Azure Functions default name
-  '__main__': 'Convo Processor',
-  'function_app': 'Convo Processor',
-  'function_app.py': 'Convo Processor',
+  // Container Apps (current infrastructure)
+  'ca-sym-backend-prod': 'Symmetry Backend',
+  'ca-sym-backend-test': 'Symmetry Backend',
+  'ca-sym-ai-features-prod': 'AI Features API',
+  'ca-sym-ai-features-test': 'AI Features API',
+  'ca-sym-ingestor-prod': 'Processor',
+  'ca-sym-ingestor-test': 'Processor',
+
+  // Processor (Container App + legacy Azure Functions names)
+  'ai-convo-processor': 'Processor',
+  'func-sym-processor-prod': 'Processor',
+  'func-sym-processor-test': 'Processor',
+  'func-sym-processor': 'Processor',
+  'ai_convo_processor': 'Processor',
+  'sym-processor': 'Processor',
+  '__main__.py': 'Processor',
+  '__main__': 'Processor',
+  'function_app': 'Processor',
+  'function_app.py': 'Processor',
 };
 
 /**
@@ -170,10 +184,14 @@ export function mapServiceName(rawName: string): string {
     { pattern: 'ai-features', name: 'AI Features API' },
     { pattern: 'ai_features', name: 'AI Features API' },
     { pattern: 'aifeatures', name: 'AI Features API' },
-    { pattern: 'processor', name: 'Convo Processor' },
-    { pattern: 'func-sym', name: 'Convo Processor' },
-    { pattern: '__main__', name: 'Convo Processor' },
-    { pattern: 'function_app', name: 'Convo Processor' },
+    { pattern: 'retrieval', name: 'AI Features API' },
+    { pattern: 'ca-sym-ingestor', name: 'Processor' },
+    { pattern: 'ca-sym-backend', name: 'Symmetry Backend' },
+    { pattern: 'ca-sym-ai-features', name: 'AI Features API' },
+    { pattern: 'processor', name: 'Processor' },
+    { pattern: 'func-sym', name: 'Processor' },
+    { pattern: '__main__', name: 'Processor' },
+    { pattern: 'function_app', name: 'Processor' },
     { pattern: 'backend', name: 'Symmetry Backend' },
     { pattern: 'uvicorn', name: 'Symmetry Backend' },
   ];
@@ -186,6 +204,34 @@ export function mapServiceName(rawName: string): string {
   
   return rawName;
 }
+
+/**
+ * Known Container App names per environment.
+ * Derived from the Azure naming convention: ca-sym-{service}-{env}
+ */
+export function getContainerAppNames(env: Environment): Array<{ name: string; displayName: string }> {
+  const suffix = env === 'prod' ? 'prod' : 'test';
+  return [
+    { name: `ca-sym-backend-${suffix}`, displayName: 'Symmetry Backend' },
+    { name: `ca-sym-ai-features-${suffix}`, displayName: 'AI Features API' },
+    { name: `ca-sym-ingestor-${suffix}`, displayName: 'Processor' },
+  ];
+}
+
+/**
+ * Get Neo4j VM name for the specified environment.
+ */
+export function getNeo4jVmName(env: Environment): string {
+  return `vm-neo4j-${env}-centralus`;
+}
+
+/**
+ * Budget thresholds from monitoring alert configuration.
+ */
+export const BUDGET_THRESHOLDS = {
+  prod: { overall: 2000, openai: 500 },
+  test: { overall: 500, openai: 200 },
+};
 
 /**
  * Aggregate service metrics by mapped name.

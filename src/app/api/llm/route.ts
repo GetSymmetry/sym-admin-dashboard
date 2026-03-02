@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { MetricsQueryClient } from '@azure/monitor-query';
-import { DefaultAzureCredential } from '@azure/identity';
+import { ClientSecretCredential, DefaultAzureCredential, TokenCredential } from '@azure/identity';
 import {
   parseTimeRange,
   getCacheKey,
@@ -12,13 +12,20 @@ import {
 } from '@/lib/api';
 import type { LLMMetricsResponse, LLMOverTimeData } from '@/types/metrics';
 
-// Singleton credential
-let credential: DefaultAzureCredential | null = null;
+// Singleton credential — uses ClientSecretCredential on Vercel, DefaultAzureCredential locally
+let credential: TokenCredential | null = null;
 let metricsClient: MetricsQueryClient | null = null;
 
-function getCredential(): DefaultAzureCredential {
+function getCredential(): TokenCredential {
   if (!credential) {
-    credential = new DefaultAzureCredential();
+    const tenantId = process.env.AZURE_TENANT_ID;
+    const clientId = process.env.AZURE_CLIENT_ID;
+    const clientSecret = process.env.AZURE_CLIENT_SECRET;
+    if (tenantId && clientId && clientSecret) {
+      credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
+    } else {
+      credential = new DefaultAzureCredential();
+    }
   }
   return credential;
 }
@@ -43,7 +50,11 @@ async function getAzureOpenAIMetrics(
 ): Promise<Record<string, MetricTimeseries>> {
   try {
     const config = getAzureOpenAIConfig();
-    const subscriptionId = process.env.AZURE_SUBSCRIPTION_ID || '1f77cabf-b8e0-485f-bee3-94c349c94daa';
+    const subscriptionId = process.env.AZURE_SUBSCRIPTION_ID;
+    if (!subscriptionId) {
+      console.error('AZURE_SUBSCRIPTION_ID is required for LLM metrics');
+      return {};
+    }
     const resourceId = `/subscriptions/${subscriptionId}/resourceGroups/${config.resourceGroup}/providers/Microsoft.CognitiveServices/accounts/${config.resourceName}`;
 
     const client = getMetricsClient();

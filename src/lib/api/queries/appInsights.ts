@@ -185,4 +185,86 @@ export const APP_INSIGHTS_QUERIES = {
     | order by timestamp desc
     | take ${limit}
   `,
+  /**
+   * Neo4j bolt connection errors from application traces.
+   */
+  neo4jConnectionErrors: (tr: TimeRange, limit: number = 20) => `
+    traces
+    | where timestamp > ago(${tr.raw})
+    | where message contains 'bolt' or message contains 'neo4j' or message contains 'ServiceUnavailable'
+    | where severityLevel >= 2
+    | extend app = coalesce(tostring(customDimensions.app_name), cloud_RoleName, 'Unknown')
+    | project timestamp, message, app
+    | order by timestamp desc
+    | take ${limit}
+  `,
+
+  /**
+   * Neo4j bolt query performance from application traces.
+   */
+  neo4jQueryPerformance: (tr: TimeRange) => `
+    traces
+    | where timestamp > ago(${tr.raw})
+    | where customDimensions.event_type == "graph_query" or message contains 'bolt'
+    | extend duration = todouble(customDimensions.duration_ms)
+    | summarize
+        QueriesPerHour = count() / (${tr.hours}),
+        AvgResponseMs = avg(duration)
+  `,
+};
+
+/**
+ * Log Analytics queries for VM performance data.
+ * These query the Perf and Syslog tables via the Log Analytics workspace.
+ */
+export const LOG_ANALYTICS_QUERIES = {
+  /**
+   * Neo4j VM CPU usage.
+   */
+  neo4jCpu: (vmName: string, tr: TimeRange) => `
+    Perf
+    | where TimeGenerated > ago(${tr.raw})
+    | where ObjectName == 'Processor'
+    | where CounterName == '% Processor Time'
+    | where InstanceName == '_Total'
+    | where Computer contains '${vmName}'
+    | summarize AvgCpu = avg(CounterValue)
+  `,
+
+  /**
+   * Neo4j VM memory usage.
+   */
+  neo4jMemory: (vmName: string, tr: TimeRange) => `
+    Perf
+    | where TimeGenerated > ago(${tr.raw})
+    | where ObjectName == 'Memory'
+    | where CounterName == '% Used Memory'
+    | where Computer contains '${vmName}'
+    | summarize AvgMemory = avg(CounterValue)
+  `,
+
+  /**
+   * Neo4j VM disk usage.
+   */
+  neo4jDisk: (vmName: string, tr: TimeRange) => `
+    Perf
+    | where TimeGenerated > ago(${tr.raw})
+    | where ObjectName == 'Logical Disk'
+    | where CounterName == '% Used Space'
+    | where InstanceName == '/'
+    | where Computer contains '${vmName}'
+    | summarize AvgDisk = avg(CounterValue)
+  `,
+
+  /**
+   * Neo4j last backup from syslog.
+   */
+  neo4jLastBackup: (vmName: string) => `
+    Syslog
+    | where Computer contains '${vmName}'
+    | where SyslogMessage contains 'backup'
+    | order by TimeGenerated desc
+    | take 1
+    | project TimeGenerated
+  `,
 };

@@ -11,7 +11,8 @@ import { QueueStatus } from '@/components/dashboard/QueueStatus';
 import { Gauge } from '@/components/ui/Gauge';
 import { cn, timeAgo } from '@/lib/utils';
 import { useDashboardState } from '@/hooks/useDashboardState';
-import { Server, Database, HardDrive, Cpu, Activity, Wifi, CheckCircle, XCircle } from 'lucide-react';
+import { Server, Database, HardDrive, Cpu, Activity, Wifi, CheckCircle, XCircle, Box } from 'lucide-react';
+import type { ContainerAppsResponse } from '@/types/metrics';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
@@ -21,19 +22,28 @@ function InfrastructureContent() {
   const { data, isLoading, mutate } = useSWR(`/api/metrics?env=${environment}&range=${timeRange}`, fetcher, {
     refreshInterval: 30000,
   });
+  const { data: containerData, mutate: mutateContainers } = useSWR<ContainerAppsResponse>(
+    `/api/container-apps?env=${environment}&range=${timeRange}`,
+    fetcher,
+    { refreshInterval: 30000 }
+  );
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await mutate();
+    await Promise.all([mutate(), mutateContainers()]);
     setTimeout(() => setIsRefreshing(false), 1000);
   };
 
-  // Calculate health status
-  const healthyServices = data?.services?.filter(
+  // Calculate health status from both Container Apps and metrics services
+  const containerApps = containerData?.apps || [];
+  const metricsServices = data?.services || [];
+  const healthyContainerApps = containerApps.filter(a => a.provisioningState === 'Succeeded').length;
+  const healthyMetricsServices = metricsServices.filter(
     (s: { status: string }) => s.status === 'healthy' || s.status === 'Running'
-  ).length || 0;
-  const totalServices = data?.services?.length || 0;
+  ).length;
+  const totalServices = containerApps.length > 0 ? containerApps.length : metricsServices.length;
+  const healthyServices = containerApps.length > 0 ? healthyContainerApps : healthyMetricsServices;
   const overallHealth = totalServices > 0 ? (healthyServices / totalServices) * 100 : 0;
 
   return (
@@ -134,57 +144,96 @@ function InfrastructureContent() {
                 </div>
               </Card>
 
+              {/* Container Apps */}
+              {containerApps.length > 0 && (
+                <Card title="Container Apps" subtitle={`${containerApps.length} apps in ${environment.toUpperCase()}`}>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {containerApps.map((app) => {
+                      const isHealthy = app.provisioningState === 'Succeeded';
+                      return (
+                        <div
+                          key={app.name}
+                          className={cn(
+                            'flex items-center justify-between p-4 rounded-lg border transition-colors',
+                            isHealthy
+                              ? 'bg-status-success/5 border-status-success/20'
+                              : 'bg-status-error/5 border-status-error/20'
+                          )}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className={cn(
+                              'w-10 h-10 rounded-lg flex items-center justify-center',
+                              isHealthy ? 'bg-status-success/20 text-status-success' : 'bg-status-error/20 text-status-error'
+                            )}>
+                              <Box size={20} />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-text-primary">{app.displayName}</p>
+                              <p className="text-xs text-text-muted font-mono">{app.name}</p>
+                              <p className="text-xs text-text-muted">
+                                {Math.round(app.metrics.replicaCount)} replicas &middot; {app.cpu} vCPU &middot; {app.memory}
+                              </p>
+                            </div>
+                          </div>
+                          <div className={cn(
+                            'flex items-center gap-1.5 text-xs font-medium',
+                            isHealthy ? 'text-status-success' : 'text-status-error'
+                          )}>
+                            {isHealthy ? <CheckCircle size={14} /> : <XCircle size={14} />}
+                            {isHealthy ? 'Running' : app.provisioningState}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </Card>
+              )}
+
               {/* Services & Queues */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <ServiceStatus services={data?.services || []} />
                 <QueueStatus queues={data?.queues || []} />
               </div>
 
-              {/* Resource List */}
+              {/* Azure Resources */}
               <Card title="Azure Resources" subtitle={`${environment.toUpperCase()} environment`}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {[
-                    { name: 'App Service Plan', type: 'asp', icon: Server, status: 'healthy' },
-                    { name: 'PostgreSQL', type: 'db', icon: Database, status: 'healthy' },
-                    { name: 'Service Bus', type: 'sb', icon: HardDrive, status: data?.overview?.deadLetters > 0 ? 'warning' : 'healthy' },
-                    { name: 'Storage Account', type: 'storage', icon: HardDrive, status: 'healthy' },
-                    { name: 'Key Vault', type: 'kv', icon: CheckCircle, status: 'healthy' },
-                    { name: 'App Insights', type: 'ai', icon: Activity, status: 'healthy' },
-                  ].map((resource, index) => (
+                  {([
+                    { name: 'PostgreSQL', icon: Database, status: 'healthy', detail: `db-sym-${environment}-centralus` },
+                    { name: 'Service Bus', icon: HardDrive, status: data?.overview?.deadLetters > 0 ? 'warning' : 'healthy', detail: `sb-sym-${environment}-centralus` },
+                    { name: 'Key Vault', icon: CheckCircle, status: 'healthy', detail: `kv-sym-${environment}-centralus` },
+                    { name: 'App Insights', icon: Activity, status: 'healthy', detail: `ai-asp-sym-${environment}-centralus` },
+                    { name: 'Log Analytics', icon: Cpu, status: 'healthy', detail: `log-asp-sym-${environment}-centralus` },
+                    { name: 'Neo4j VM', icon: Server, status: 'healthy', detail: `vm-neo4j-${environment}-centralus` },
+                  ] as Array<{ name: string; icon: typeof Server; status: string; detail: string }>).map((resource, index) => (
                     <div
                       key={index}
                       className={cn(
                         'flex items-center justify-between p-4 rounded-lg border transition-colors',
                         resource.status === 'healthy'
-                          ? 'bg-success-light border-success'
-                          : 'bg-warning-light border-warning'
+                          ? 'bg-status-success/5 border-status-success/20'
+                          : 'bg-status-warning/5 border-status-warning/20'
                       )}
                     >
                       <div className="flex items-center gap-3">
                         <div className={cn(
                           'w-10 h-10 rounded-lg flex items-center justify-center',
                           resource.status === 'healthy'
-                            ? 'bg-success/20 text-success'
-                            : 'bg-warning/20 text-warning'
+                            ? 'bg-status-success/20 text-status-success'
+                            : 'bg-status-warning/20 text-status-warning'
                         )}>
                           <resource.icon size={20} />
                         </div>
                         <div>
                           <p className="text-sm font-medium text-text-primary">{resource.name}</p>
-                          <p className="text-xs text-text-muted font-mono">
-                            {resource.type}-sym-{environment}-centralus
-                          </p>
+                          <p className="text-xs text-text-muted font-mono">{resource.detail}</p>
                         </div>
                       </div>
                       <div className={cn(
                         'flex items-center gap-1.5 text-xs font-medium',
-                        resource.status === 'healthy' ? 'text-success' : 'text-warning'
+                        resource.status === 'healthy' ? 'text-status-success' : 'text-status-warning'
                       )}>
-                        {resource.status === 'healthy' ? (
-                          <CheckCircle size={14} />
-                        ) : (
-                          <Activity size={14} />
-                        )}
+                        {resource.status === 'healthy' ? <CheckCircle size={14} /> : <Activity size={14} />}
                         {resource.status === 'healthy' ? 'Healthy' : 'Warning'}
                       </div>
                     </div>

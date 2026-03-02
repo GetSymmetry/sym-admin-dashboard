@@ -68,6 +68,30 @@ export const deploymentsCache: AnyCache = new LRUCache({
   ttl: 10 * 60 * 1000,
 });
 
+// Container Apps cache: 2 minute TTL
+export const containerAppsCache: AnyCache = new LRUCache({
+  max: 20,
+  ttl: 2 * 60 * 1000,
+});
+
+// Neo4j cache: 3 minute TTL
+export const neo4jCache: AnyCache = new LRUCache({
+  max: 20,
+  ttl: 3 * 60 * 1000,
+});
+
+// Alerts cache: 2 minute TTL
+export const alertsCache: AnyCache = new LRUCache({
+  max: 20,
+  ttl: 2 * 60 * 1000,
+});
+
+// Costs cache: 10 minute TTL (financial data changes slowly)
+export const costsCache: AnyCache = new LRUCache({
+  max: 20,
+  ttl: 10 * 60 * 1000,
+});
+
 /**
  * Helper to check cache and return cached data if valid.
  * Returns null if cache miss or forced refresh.

@@ -8,7 +8,7 @@ import {
   metricsCache,
   queryAppInsights,
   getServiceBusMetrics,
-  getAllServicesStatus,
+  listContainerApps,
   mapServiceName,
   aggregateServiceMetrics,
   APP_INSIGHTS_QUERIES,
@@ -53,8 +53,8 @@ export async function GET(request: Request) {
       queryAppInsights(APP_INSIGHTS_QUERIES.llmMetrics(timeRange), env, timeRange.isoDuration),
       // Service Bus queues
       getServiceBusMetrics(env),
-      // All services status
-      getAllServicesStatus(env),
+      // Container Apps status (replaces App Services which are no longer used)
+      listContainerApps(env),
       // Recent errors
       queryAppInsights(APP_INSIGHTS_QUERIES.recentErrors(10), env, 'PT1H'),
       // Performance by endpoint
@@ -115,10 +115,10 @@ export async function GET(request: Request) {
       deadLetter: q.deadLetter || 0,
     }));
 
-    // Transform services data
-    const servicesData = services.map((s) => ({
-      name: s.displayName || s.name,
-      status: s.status,
+    // Transform Container Apps to service status format
+    const servicesData = services.map((app) => ({
+      name: app.displayName || app.name,
+      status: (app.provisioningState === 'Succeeded' ? 'healthy' : 'unhealthy') as 'healthy' | 'unhealthy',
     }));
 
     // Transform errors data

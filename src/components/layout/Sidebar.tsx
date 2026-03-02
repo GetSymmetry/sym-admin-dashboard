@@ -14,17 +14,25 @@ import {
   ChevronRight,
   Zap,
   Sparkles,
+  Box,
+  Bell,
+  Wallet,
+  CircleDot,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { href: '/', label: 'Overview', icon: LayoutDashboard },
   { href: '/ai', label: 'AI Assistant', icon: Sparkles },
+  { href: '/container-apps', label: 'Container Apps', icon: Box },
+  { href: '/neo4j', label: 'Neo4j', icon: CircleDot },
   { href: '/database', label: 'Database', icon: Database },
   { href: '/llm', label: 'LLM & Costs', icon: DollarSign },
   { href: '/infrastructure', label: 'Infrastructure', icon: Server },
   { href: '/jobs', label: 'Jobs & Queues', icon: Cpu },
   { href: '/errors', label: 'Errors', icon: AlertTriangle },
+  { href: '/alerts', label: 'Alerts', icon: Bell },
+  { href: '/costs', label: 'Costs & Budget', icon: Wallet },
   { href: '/deployments', label: 'Deployments', icon: Rocket },
 ];
 

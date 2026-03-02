@@ -304,6 +304,150 @@ export interface ErrorsResponse {
 }
 
 // ============================================================================
+// Container Apps
+// ============================================================================
+
+export interface ContainerAppInfo {
+  name: string;
+  displayName: string;
+  status: string;
+  provisioningState: string;
+  replicas: number;
+  maxReplicas: number;
+  minReplicas: number;
+  cpu: number;
+  memory: string;
+  image: string;
+  activeRevision: string;
+}
+
+export interface ContainerAppRevision {
+  name: string;
+  createdTime: string;
+  runningState: string;
+  trafficWeight: number;
+  image: string;
+  replicas: number;
+  active: boolean;
+}
+
+export interface ContainerAppsResponse {
+  timestamp: string;
+  environment: string;
+  apps: Array<ContainerAppInfo & {
+    metrics: {
+      cpuUsage: number;
+      memoryUsage: number;
+      replicaCount: number;
+      restartCount: number;
+      requestCount: number;
+    };
+    recentRevisions: ContainerAppRevision[];
+  }>;
+  summary: {
+    totalApps: number;
+    runningApps: number;
+    totalReplicas: number;
+    totalRestarts: number;
+  };
+}
+
+// ============================================================================
+// Neo4j
+// ============================================================================
+
+export interface Neo4jResponse {
+  timestamp: string;
+  environment: string;
+  vmName: string;
+  health: {
+    cpuPercent: number;
+    memoryPercent: number;
+    diskPercent: number;
+    connectionErrors: number;
+    lastBackupTime: string;
+  };
+  connectionErrors: Array<{
+    timestamp: string;
+    message: string;
+    service: string;
+  }>;
+  performance: {
+    boltQueriesPerHour: number;
+    avgResponseMs: number;
+  };
+}
+
+// ============================================================================
+// Alerts
+// ============================================================================
+
+export interface AlertRule {
+  id: string;
+  name: string;
+  displayName: string;
+  severity: number;
+  enabled: boolean;
+  type: 'metric' | 'log' | 'activity';
+  targetResource: string;
+  lastModified: string;
+}
+
+export interface FiredAlert {
+  id: string;
+  name: string;
+  severity: string;
+  monitorCondition: string;
+  firedTime: string;
+  resolvedTime?: string;
+  targetResource: string;
+  description: string;
+}
+
+export interface AlertsResponse {
+  timestamp: string;
+  environment: string;
+  rules: AlertRule[];
+  firedAlerts: FiredAlert[];
+  summary: {
+    totalRules: number;
+    enabledRules: number;
+    bySeverity: Record<number, number>;
+    currentlyFiring: number;
+  };
+}
+
+// ============================================================================
+// Costs
+// ============================================================================
+
+export interface CostsResponse {
+  timestamp: string;
+  environment: string;
+  timeRange: string;
+  llm: {
+    totalCost: number;
+    totalTokens: number;
+    totalCalls: number;
+    byModel: Array<{
+      model: string;
+      cost: number;
+      tokens: number;
+      calls: number;
+    }>;
+    dailyCosts: Array<{ date: string; cost: number; tokens: number }>;
+  };
+  budget: {
+    overallLimit: number;
+    openaiLimit: number;
+    estimatedMonthlyCost: number;
+    openaiMonthlyCost: number;
+    overallUsedPercent: number;
+    openaiUsedPercent: number;
+  };
+}
+
+// ============================================================================
 // Deployments Response
 // ============================================================================
 
