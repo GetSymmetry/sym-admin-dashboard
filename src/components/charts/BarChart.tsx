@@ -1,119 +1,61 @@
-'use client';
-
-import {
-  BarChart as RechartsBarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-} from 'recharts';
+"use client";
+import { BarChart as RechartsBar, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 interface BarChartProps {
-  data: Array<Record<string, unknown>>;
-  xField: string;
-  yField: string;
+  data: Record<string, any>[];
+  /** X-axis data key — accepts either xKey or xField */
+  xKey?: string;
+  xField?: string;
+  /** Y-axis data key — accepts either yKey or yField */
+  yKey?: string;
+  yField?: string;
+  color?: string;
+  colors?: string[];
   height?: number;
   horizontal?: boolean;
-  colors?: string[];
 }
-
-const DEFAULT_COLORS = [
-  '#4077ed',  // brand-blue
-  '#22c55e',  // status-success
-  '#f59e0b',  // status-warning
-  '#ef4444',  // status-error
-  '#06b6d4',  // cyan
-  '#8b5cf6',  // purple
-  '#ec4899',  // pink
-];
 
 export function BarChart({
   data,
+  xKey,
   xField,
+  yKey,
   yField,
-  height = 200,
+  color = "var(--color-chart-blue)",
+  colors,
+  height = 300,
   horizontal = false,
-  colors = DEFAULT_COLORS,
 }: BarChartProps) {
+  const xDataKey = xKey || xField || "x";
+  const yDataKey = yKey || yField || "y";
+
+  // When colors array is provided, add fill to each data point
+  const coloredData = colors
+    ? data.map((d, i) => ({ ...d, fill: colors[i % colors.length] }))
+    : data;
+
   if (horizontal) {
     return (
       <ResponsiveContainer width="100%" height={height}>
-        <RechartsBarChart
-          data={data}
-          layout="vertical"
-          margin={{ top: 10, right: 10, left: 60, bottom: 0 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" horizontal={false} />
-          <XAxis
-            type="number"
-            stroke="#757575"
-            fontSize={11}
-            tickLine={false}
-            axisLine={false}
-          />
-          <YAxis
-            type="category"
-            dataKey={xField}
-            stroke="#757575"
-            fontSize={11}
-            tickLine={false}
-            axisLine={false}
-            width={50}
-          />
-          <Tooltip
-            contentStyle={{
-              backgroundColor: '#ffffff',
-              border: '1px solid #d9d9d9',
-              borderRadius: '8px',
-              fontSize: '12px',
-            }}
-            labelStyle={{ color: '#757575' }}
-          />
-          <Bar dataKey={yField} radius={[0, 4, 4, 0]}>
-            {data.map((_, index) => (
-              <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
-            ))}
-          </Bar>
-        </RechartsBarChart>
+        <RechartsBar data={coloredData} layout="vertical">
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+          <XAxis type="number" tick={{ fontSize: 12, fill: "var(--color-text-muted)" }} />
+          <YAxis dataKey={xDataKey} type="category" tick={{ fontSize: 12, fill: "var(--color-text-muted)" }} width={120} />
+          <Tooltip contentStyle={{ backgroundColor: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 8 }} />
+          <Bar dataKey={yDataKey} fill={color} radius={[0, 4, 4, 0]} />
+        </RechartsBar>
       </ResponsiveContainer>
     );
   }
-
   return (
     <ResponsiveContainer width="100%" height={height}>
-      <RechartsBarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" vertical={false} />
-        <XAxis
-          dataKey={xField}
-          stroke="#757575"
-          fontSize={11}
-          tickLine={false}
-          axisLine={false}
-        />
-        <YAxis
-          stroke="#757575"
-          fontSize={11}
-          tickLine={false}
-          axisLine={false}
-        />
-        <Tooltip
-          contentStyle={{
-            backgroundColor: '#ffffff',
-            border: '1px solid #d9d9d9',
-            borderRadius: '8px',
-            fontSize: '12px',
-          }}
-          labelStyle={{ color: '#757575' }}
-        />
-        <Bar dataKey={yField} radius={[4, 4, 0, 0]}>
-          {data.map((_, index) => (
-            <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
-          ))}
-        </Bar>
-      </RechartsBarChart>
+      <RechartsBar data={coloredData}>
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+        <XAxis dataKey={xDataKey} tick={{ fontSize: 12, fill: "var(--color-text-muted)" }} />
+        <YAxis tick={{ fontSize: 12, fill: "var(--color-text-muted)" }} />
+        <Tooltip contentStyle={{ backgroundColor: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 8 }} />
+        <Bar dataKey={yDataKey} fill={color} radius={[4, 4, 0, 0]} />
+      </RechartsBar>
     </ResponsiveContainer>
   );
 }

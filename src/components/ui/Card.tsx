@@ -1,44 +1,26 @@
-'use client';
-
-import { cn } from '@/lib/utils';
-import { ReactNode } from 'react';
+import { clsx } from "clsx";
 
 interface CardProps {
-  children: ReactNode;
-  className?: string;
   title?: string;
   subtitle?: string;
-  action?: ReactNode;
+  action?: React.ReactNode;
+  children: React.ReactNode;
+  className?: string;
 }
 
-export function Card({
-  children,
-  className,
-  title,
-  subtitle,
-  action,
-}: CardProps) {
+export function Card({ title, subtitle, action, children, className }: CardProps) {
   return (
-    <div
-      className={cn(
-        'bg-surface rounded-card border border-border-subtle shadow-card',
-        className
-      )}
-    >
+    <div className={clsx("bg-surface rounded-sds-200 border border-border p-sds-400", className)}>
       {(title || action) && (
-        <div className="flex items-center justify-between px-4 py-3 border-b border-border-subtle">
+        <div className="flex items-center justify-between mb-sds-300">
           <div>
-            {title && (
-              <h3 className="text-body-small font-medium text-text-primary">{title}</h3>
-            )}
-            {subtitle && (
-              <p className="text-body-xs text-text-muted mt-0.5">{subtitle}</p>
-            )}
+            {title && <h3 className="text-heading-h3 font-semibold text-text-primary">{title}</h3>}
+            {subtitle && <p className="text-body-small text-text-secondary mt-1">{subtitle}</p>}
           </div>
           {action}
         </div>
       )}
-      <div className="p-4">{children}</div>
+      {children}
     </div>
   );
 }
