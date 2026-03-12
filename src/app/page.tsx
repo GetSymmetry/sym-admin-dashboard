@@ -9,13 +9,11 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { BarChart } from '@/components/charts/BarChart';
 import { useDebugger } from '@/hooks/useDebugger';
 import { useDebuggerDashboardState } from '@/hooks/useDashboardState';
-import { formatCurrency, formatNumber, cn, timeAgo } from '@/lib/utils';
+import { formatNumber, cn, timeAgo } from '@/lib/utils';
 import {
   Activity,
   Users,
   Briefcase,
-  DollarSign,
-  AlertTriangle,
   TrendingUp,
   Zap,
 } from 'lucide-react';
@@ -24,28 +22,31 @@ import {
 
 interface PulseMetrics {
   total_users: number;
-  active_users_7d: number;
+  whitelisted_users: number;
+  active_last_7d: number;
+  active_last_30d: number;
   total_workspaces: number;
-  total_conversations: number;
-  error_rate: number;
-  avg_latency_ms: number;
+  total_organizations: number;
+  jobs_last_24h: number;
 }
 
 interface TopWorkspace {
   id: string;
   name: string;
-  organization: string;
-  conversations: number;
-  knowledge_units: number;
-  last_active: string;
+  organization_name: string;
+  job_count: number;
+  member_count: number;
+  last_activity: string;
 }
 
 interface PipelineStep {
-  stage: string;
-  status: string;
-  jobs_pending: number;
-  jobs_failed_24h: number;
-  avg_duration_secs: number;
+  job_type: string;
+  total: number;
+  completed: number;
+  failed: number;
+  processing: number;
+  pending: number;
+  avg_duration_secs: string | number;
 }
 
 interface CostItem {
@@ -138,27 +139,25 @@ function DashboardContent() {
                   title="Total Users"
                   value={pulse?.total_users ?? '—'}
                   icon={Users}
-                  subtitle={pulse?.active_users_7d != null ? `${formatNumber(pulse.active_users_7d)} active 7d` : undefined}
+                  subtitle={pulse?.active_last_7d != null ? `${formatNumber(pulse.active_last_7d)} active 7d` : undefined}
                 />
                 <MetricCard
                   title="Workspaces"
                   value={pulse?.total_workspaces ?? '—'}
                   icon={Briefcase}
-                  subtitle="Active workspaces"
+                  subtitle={pulse?.total_organizations != null ? `${pulse.total_organizations} organizations` : undefined}
                 />
                 <MetricCard
-                  title="Conversations"
-                  value={pulse?.total_conversations ?? '—'}
+                  title="Jobs (24h)"
+                  value={pulse?.jobs_last_24h ?? '—'}
                   icon={Activity}
-                  subtitle="Total sessions"
+                  subtitle={pulse?.whitelisted_users != null ? `${pulse.whitelisted_users} whitelisted users` : undefined}
                 />
                 <MetricCard
-                  title="Error Rate"
-                  value={pulse?.error_rate != null ? `${pulse.error_rate.toFixed(2)}%` : '—'}
-                  format="raw"
-                  icon={AlertTriangle}
-                  iconColor={pulse?.error_rate != null && pulse.error_rate > 1 ? 'text-status-error' : 'text-status-success'}
-                  subtitle={pulse?.avg_latency_ms != null ? `${pulse.avg_latency_ms.toFixed(0)}ms avg latency` : undefined}
+                  title="Active (30d)"
+                  value={pulse?.active_last_30d ?? '—'}
+                  icon={TrendingUp}
+                  subtitle={pulse?.active_last_7d != null ? `${pulse.active_last_7d} active last 7d` : undefined}
                 />
               </div>
 
@@ -179,14 +178,14 @@ function DashboardContent() {
                         >
                           <div className="min-w-0 flex-1">
                             <p className="text-sm font-medium text-text-primary truncate">{ws.name}</p>
-                            <p className="text-xs text-text-muted truncate">{ws.organization}</p>
+                            <p className="text-xs text-text-muted truncate">{ws.organization_name}</p>
                           </div>
                           <div className="text-right ml-4 shrink-0">
                             <p className="text-sm font-mono text-text-primary">
-                              {ws.conversations.toLocaleString()} convos
+                              {(ws.job_count ?? 0).toLocaleString()} jobs
                             </p>
                             <p className="text-xs text-text-muted">
-                              {ws.knowledge_units.toLocaleString()} KUs
+                              {(ws.member_count ?? 0).toLocaleString()} members
                             </p>
                           </div>
                         </div>
@@ -205,30 +204,34 @@ function DashboardContent() {
                         <div className="w-6 h-6 border-2 border-brand-blue/30 border-t-brand-blue rounded-full animate-spin" />
                       </div>
                     ) : pipeline && pipeline.length > 0 ? (
-                      pipeline.map((step) => (
-                        <div
-                          key={step.stage}
-                          className="flex items-center justify-between p-3 bg-surface-tertiary rounded-lg"
-                        >
-                          <div className="flex items-center gap-3">
-                            <Zap size={16} className="text-brand-blue" />
-                            <div>
-                              <p className="text-sm font-medium text-text-primary">{step.stage}</p>
-                              <p className="text-xs text-text-muted">
-                                {step.jobs_pending} pending &middot; {step.avg_duration_secs.toFixed(1)}s avg
-                              </p>
+                      pipeline.map((step) => {
+                        const duration = Number(step.avg_duration_secs) || 0;
+                        const status = step.failed > 0 ? 'degraded' : step.pending > 5 ? 'warning' : 'healthy';
+                        return (
+                          <div
+                            key={step.job_type}
+                            className="flex items-center justify-between p-3 bg-surface-tertiary rounded-lg"
+                          >
+                            <div className="flex items-center gap-3">
+                              <Zap size={16} className="text-brand-blue" />
+                              <div>
+                                <p className="text-sm font-medium text-text-primary">{step.job_type}</p>
+                                <p className="text-xs text-text-muted">
+                                  {step.pending} pending &middot; {duration.toFixed(1)}s avg
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              {step.failed > 0 && (
+                                <span className="text-xs text-status-error font-mono">
+                                  {step.failed} failed
+                                </span>
+                              )}
+                              <StatusBadge status={status} pulse={status !== 'healthy'} />
                             </div>
                           </div>
-                          <div className="flex items-center gap-3">
-                            {step.jobs_failed_24h > 0 && (
-                              <span className="text-xs text-status-error font-mono">
-                                {step.jobs_failed_24h} failed
-                              </span>
-                            )}
-                            <StatusBadge status={step.status} pulse={step.status !== 'healthy'} />
-                          </div>
-                        </div>
-                      ))
+                        );
+                      })
                     ) : (
                       <p className="text-text-muted text-center py-8">No pipeline data</p>
                     )}
