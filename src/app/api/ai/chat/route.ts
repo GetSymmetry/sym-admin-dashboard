@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
   const { messages } = await request.json();
   const provider = getProvider();
 
-  const debuggerUrl = process.env.NEXT_PUBLIC_DEBUGGER_URL || "http://localhost:8004/api";
+  const debuggerUrl = (process.env.NEXT_PUBLIC_DEBUGGER_URL || "http://localhost:8004/api").trim();
   const { tools, schema: toolSchema } = await getToolSchema(debuggerUrl);
 
   // Build conversation with system prompt

@@ -5,8 +5,9 @@
  */
 import type { DebugResponse } from "./types";
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_DEBUGGER_URL || "http://localhost:8004/api";
+const BASE_URL = (
+  process.env.NEXT_PUBLIC_DEBUGGER_URL || "http://localhost:8004/api"
+).trim();
 
 class DebuggerClient {
   private baseUrl: string;
