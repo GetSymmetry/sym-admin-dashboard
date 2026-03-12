@@ -6,7 +6,6 @@ import { Header } from '@/components/layout/Header';
 import { Card } from '@/components/ui/Card';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { BarChart } from '@/components/charts/BarChart';
 import { useDebugger } from '@/hooks/useDebugger';
 import { useDebuggerDashboardState } from '@/hooks/useDashboardState';
 import { cn, formatBytes, formatNumber } from '@/lib/utils';
@@ -15,45 +14,61 @@ import {
   Server,
   Database,
   AlertTriangle,
-  HardDrive,
-  Cpu,
-  MemoryStick,
 } from 'lucide-react';
 
-/* ── Types ── */
+/* ── Types (matching actual backend response shapes) ── */
 
 interface ServiceResource {
   name: string;
-  cpu_usage_percent: number;
-  memory_usage_percent: number;
-  replica_count: number;
-  max_replicas: number;
-  requests_per_min: number;
+  location: string;
+  provisioning_state: string;
+  running_status: string | null;
+  latest_revision: string;
 }
 
-interface QuotaInfo {
-  resource: string;
-  current: number;
-  limit: number;
-  unit: string;
-  usage_percent: number;
+interface QuotaData {
+  connections: {
+    total_connections: number;
+    active: number;
+    idle: number;
+    idle_in_transaction: number;
+  };
+  total_db_size_bytes: number;
+  table_count: number;
 }
 
-interface Bottleneck {
-  component: string;
-  metric: string;
-  current_value: number;
-  threshold: number;
-  severity: string;
-  recommendation: string;
+interface BottleneckEntry {
+  name: string;
+  cloud_RoleName: string;
+  p95_duration: number;
+  p99_duration: number;
+  count_: number;
 }
 
-interface DatabasePerf {
-  metric: string;
-  value: number;
-  unit: string;
-  status: string;
-  details: string;
+interface TableSize {
+  table_name: string;
+  total_size: string;
+  size_bytes: number;
+  row_estimate: number;
+}
+
+interface DatabasePerfData {
+  table_sizes: TableSize[];
+  connections: {
+    total_connections: number;
+    active: number;
+    idle: number;
+    idle_in_transaction: number;
+  };
+  slow_queries: SlowQuery[];
+}
+
+interface SlowQuery {
+  query: string;
+  calls: number;
+  mean_exec_time: number;
+  total_exec_time: number;
+  rows: number;
 }
 
 /* ── Skeleton ── */
@@ -88,13 +103,13 @@ function ScalabilityContent() {
     useDebugger<ServiceResource[]>('/debug/scale/services');
 
   const { data: quotas, isLoading: qLoading } =
-    useDebugger<QuotaInfo[]>('/debug/scale/quotas');
+    useDebugger<QuotaData>('/debug/scale/quotas');
 
   const { data: bottlenecks, isLoading: bLoading } =
-    useDebugger<Bottleneck[]>('/debug/scale/bottlenecks');
+    useDebugger<BottleneckEntry[]>('/debug/scale/bottlenecks');
 
   const { data: dbPerf, isLoading: dbLoading } =
-    useDebugger<DatabasePerf[]>('/debug/scale/database');
+    useDebugger<DatabasePerfData>('/debug/scale/database');
 
   const isLoading = svcLoading && !services;
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -104,8 +119,6 @@ function ScalabilityContent() {
     await refresh();
     setTimeout(() => setIsRefreshing(false), 800);
   };
-
-  const criticalBottlenecks = bottlenecks?.filter((b) => b.severity === 'critical').length ?? 0;
 
   return (
     <div className="flex h-screen bg-surface-secondary">
@@ -142,73 +155,45 @@ function ScalabilityContent() {
                   iconColor="text-brand-blue"
                 />
                 <MetricCard
-                  title="Quotas Near Limit"
-                  value={quotas?.filter((q) => q.usage_percent > 80).length ?? 0}
+                  title="DB Connections"
+                  value={quotas?.connections?.total_connections ?? '—'}
                   icon={Gauge}
                   iconColor="text-status-warning"
                 />
                 <MetricCard
-                  title="Bottlenecks"
+                  title="Slow Endpoints"
                   value={bottlenecks?.length ?? 0}
                   icon={AlertTriangle}
-                  iconColor={criticalBottlenecks > 0 ? 'text-status-error' : 'text-status-success'}
-                  subtitle={criticalBottlenecks > 0 ? `${criticalBottlenecks} critical` : 'None critical'}
+                  iconColor={bottlenecks && bottlenecks.length > 0 ? 'text-status-error' : 'text-status-success'}
+                  subtitle={bottlenecks && bottlenecks.length > 0 ? `${bottlenecks.length} above 1s p95` : 'None detected'}
                 />
                 <MetricCard
-                  title="DB Metrics"
-                  value={dbPerf?.length ?? '—'}
+                  title="DB Size"
+                  value={quotas?.total_db_size_bytes != null ? formatBytes(quotas.total_db_size_bytes) : '—'}
                   icon={Database}
                   iconColor="text-brand-blue"
                 />
               </div>
 
               {/* Service Resources */}
-              <Card title="Service Resources" subtitle="CPU, memory, and replica utilization">
+              <Card title="Service Resources" subtitle="Container Apps provisioning status">
                 <div className="space-y-3">
                   {services && services.length > 0 ? (
                     services.map((svc) => (
                       <div key={svc.name} className="p-4 bg-surface-tertiary rounded-lg">
-                        <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <Server size={16} className="text-brand-blue" />
                             <span className="text-sm font-medium text-text-primary">{svc.name}</span>
                           </div>
-                          <span className="text-xs text-text-muted">
-                            {svc.replica_count}/{svc.max_replicas} replicas &middot; {svc.requests_per_min} req/min
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          {/* CPU bar */}
-                          <div>
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-xs text-text-muted">CPU</span>
-                              <span className="text-xs font-mono text-text-secondary">{svc.cpu_usage_percent.toFixed(1)}%</span>
-                            </div>
-                            <div className="h-2 bg-surface rounded-full overflow-hidden">
-                              <div
-                                className={cn(
-                                  'h-full rounded-full transition-all',
-                                  svc.cpu_usage_percent > 80 ? 'bg-status-error' : svc.cpu_usage_percent > 60 ? 'bg-status-warning' : 'bg-status-success'
-                                )}
-                                style={{ width: `${Math.min(svc.cpu_usage_percent, 100)}%` }}
-                              />
-                            </div>
-                          </div>
-                          {/* Memory bar */}
-                          <div>
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-xs text-text-muted">Memory</span>
-                              <span className="text-xs font-mono text-text-secondary">{svc.memory_usage_percent.toFixed(1)}%</span>
-                            </div>
-                            <div className="h-2 bg-surface rounded-full overflow-hidden">
-                              <div
-                                className={cn(
-                                  'h-full rounded-full transition-all',
-                                  svc.memory_usage_percent > 80 ? 'bg-status-error' : svc.memory_usage_percent > 60 ? 'bg-status-warning' : 'bg-status-success'
-                                )}
-                                style={{ width: `${Math.min(svc.memory_usage_percent, 100)}%` }}
-                              />
-                            </div>
+                          <div className="flex items-center gap-4">
+                            <StatusBadge status={svc.provisioning_state ?? 'unknown'} />
+                            <span className="text-xs text-text-muted">
+                              {svc.latest_revision ?? '—'}
+                            </span>
+                            {svc.location && (
+                              <span className="text-xs text-text-muted">{svc.location}</span>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -221,42 +206,50 @@ function ScalabilityContent() {
 
               {/* Quotas + Bottlenecks */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Quotas */}
-                <Card title="Resource Quotas" subtitle="Usage vs limits">
+                {/* Quotas (connection stats + DB summary) */}
+                <Card title="Resource Quotas" subtitle="Database connections and storage">
                   <div className="space-y-3">
-                    {quotas && quotas.length > 0 ? (
-                      quotas.map((q) => (
-                        <div key={q.resource} className="flex items-center justify-between p-3 bg-surface-tertiary rounded-lg">
-                          <div>
-                            <p className="text-sm font-medium text-text-primary">{q.resource}</p>
-                            <p className="text-xs text-text-muted">
-                              {formatNumber(q.current)} / {formatNumber(q.limit)} {q.unit}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <div className="w-24 h-2 bg-surface rounded-full overflow-hidden">
-                              <div
-                                className={cn(
-                                  'h-full rounded-full',
-                                  q.usage_percent > 90 ? 'bg-status-error' : q.usage_percent > 70 ? 'bg-status-warning' : 'bg-status-success'
-                                )}
-                                style={{ width: `${Math.min(q.usage_percent, 100)}%` }}
-                              />
+                    {quotas ? (
+                      <>
+                        {/* Connection breakdown */}
+                        <div className="p-3 bg-surface-tertiary rounded-lg">
+                          <p className="text-sm font-medium text-text-primary mb-2">Connections</p>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="text-xs text-text-muted">
+                              Active: <span className="font-mono text-text-secondary">{quotas.connections?.active ?? 0}</span>
                             </div>
-                            <span className="text-xs font-mono text-text-secondary w-12 text-right">
-                              {q.usage_percent.toFixed(0)}%
-                            </span>
+                            <div className="text-xs text-text-muted">
+                              Idle: <span className="font-mono text-text-secondary">{quotas.connections?.idle ?? 0}</span>
+                            </div>
+                            <div className="text-xs text-text-muted">
+                              Idle in Txn: <span className="font-mono text-text-secondary">{quotas.connections?.idle_in_transaction ?? 0}</span>
+                            </div>
+                            <div className="text-xs text-text-muted">
+                              Total: <span className="font-mono text-text-secondary">{quotas.connections?.total_connections ?? 0}</span>
+                            </div>
                           </div>
                         </div>
-                      ))
+                        {/* DB size + table count */}
+                        <div className="flex items-center justify-between p-3 bg-surface-tertiary rounded-lg">
+                          <div>
+                            <p className="text-sm font-medium text-text-primary">Database Size</p>
+                            <p className="text-xs text-text-muted">
+                              {quotas.total_db_size_bytes != null ? formatBytes(quotas.total_db_size_bytes) : '—'}
+                            </p>
+                          </div>
+                          <span className="text-xs font-mono text-text-secondary">
+                            {quotas.table_count ?? 0} tables
+                          </span>
+                        </div>
+                      </>
                     ) : (
                       <p className="text-text-muted text-center py-8">No quota data</p>
                     )}
                   </div>
                 </Card>
 
-                {/* Bottlenecks */}
-                <Card title="Bottlenecks" subtitle="Performance constraints">
+                {/* Bottlenecks (slow endpoints from App Insights) */}
+                <Card title="Bottlenecks" subtitle="Slow endpoints (p95 > 1s)">
                   <div className="space-y-3">
                     {bottlenecks && bottlenecks.length > 0 ? (
                       bottlenecks.map((b, i) => (
@@ -264,21 +257,22 @@ function ScalabilityContent() {
                           key={i}
                           className={cn(
                             'p-3 rounded-lg border',
-                            b.severity === 'critical'
+                            (b.p95_duration ?? 0) > 5000
                               ? 'bg-status-error/5 border-status-error/20'
-                              : b.severity === 'warning'
+                              : (b.p95_duration ?? 0) > 2000
                               ? 'bg-status-warning/5 border-status-warning/20'
                               : 'bg-surface-tertiary border-border-subtle'
                           )}
                         >
                           <div className="flex items-center justify-between mb-1">
-                            <span className="text-sm font-medium text-text-primary">{b.component}</span>
-                            <StatusBadge status={b.severity} />
+                            <span className="text-sm font-medium text-text-primary truncate max-w-[60%]">{b.name ?? '—'}</span>
+                            <span className="text-xs text-text-muted">{b.cloud_RoleName ?? '—'}</span>
                           </div>
-                          <p className="text-xs text-text-muted mb-1">
-                            {b.metric}: {b.current_value} (threshold: {b.threshold})
-                          </p>
-                          <p className="text-xs text-text-secondary">{b.recommendation}</p>
+                          <div className="flex items-center gap-4 text-xs text-text-muted">
+                            <span>P95: <span className="font-mono text-text-secondary">{b.p95_duration != null ? `${b.p95_duration.toFixed(0)}ms` : '—'}</span></span>
+                            <span>P99: <span className="font-mono text-text-secondary">{b.p99_duration != null ? `${b.p99_duration.toFixed(0)}ms` : '—'}</span></span>
+                            <span>Count: <span className="font-mono text-text-secondary">{b.count_ != null ? formatNumber(b.count_) : '—'}</span></span>
+                          </div>
                         </div>
                       ))
                     ) : (
@@ -289,41 +283,113 @@ function ScalabilityContent() {
               </div>
 
               {/* Database Performance */}
-              <Card title="Database Performance" subtitle="PostgreSQL & Neo4j metrics">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-border-subtle">
-                        <th className="text-left py-2 px-3 text-text-muted font-medium">Metric</th>
-                        <th className="text-right py-2 px-3 text-text-muted font-medium">Value</th>
-                        <th className="text-left py-2 px-3 text-text-muted font-medium">Unit</th>
-                        <th className="text-center py-2 px-3 text-text-muted font-medium">Status</th>
-                        <th className="text-left py-2 px-3 text-text-muted font-medium">Details</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {dbPerf && dbPerf.length > 0 ? (
-                        dbPerf.map((m, i) => (
-                          <tr key={i} className="border-b border-border-subtle/50">
-                            <td className="py-2 px-3 text-text-primary font-medium">{m.metric}</td>
-                            <td className="py-2 px-3 text-right font-mono text-text-secondary">{m.value}</td>
-                            <td className="py-2 px-3 text-text-muted">{m.unit}</td>
-                            <td className="py-2 px-3 text-center">
-                              <StatusBadge status={m.status} />
-                            </td>
-                            <td className="py-2 px-3 text-text-muted text-xs">{m.details}</td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan={5} className="py-8 text-center text-text-muted">
-                            No database metrics available
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+              <Card title="Database Performance" subtitle="Table sizes, connections, and slow queries">
+                {dbPerf ? (
+                  <div className="space-y-6">
+                    {/* Table Sizes */}
+                    <div>
+                      <h4 className="text-sm font-medium text-text-primary mb-2">Table Sizes</h4>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b border-border-subtle">
+                              <th className="text-left py-2 px-3 text-text-muted font-medium">Table</th>
+                              <th className="text-right py-2 px-3 text-text-muted font-medium">Size</th>
+                              <th className="text-right py-2 px-3 text-text-muted font-medium">Rows (est.)</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {dbPerf.table_sizes && dbPerf.table_sizes.length > 0 ? (
+                              dbPerf.table_sizes.map((t, i) => (
+                                <tr key={i} className="border-b border-border-subtle/50">
+                                  <td className="py-2 px-3 text-text-primary font-medium font-mono text-xs">{t.table_name ?? '—'}</td>
+                                  <td className="py-2 px-3 text-right text-text-secondary">{t.total_size ?? '—'}</td>
+                                  <td className="py-2 px-3 text-right font-mono text-text-muted">
+                                    {t.row_estimate != null ? formatNumber(t.row_estimate) : '—'}
+                                  </td>
+                                </tr>
+                              ))
+                            ) : (
+                              <tr>
+                                <td colSpan={3} className="py-4 text-center text-text-muted">No table data</td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* Connection Stats */}
+                    <div>
+                      <h4 className="text-sm font-medium text-text-primary mb-2">Connection Stats</h4>
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                        <div className="p-3 bg-surface-tertiary rounded-lg text-center">
+                          <p className="text-xs text-text-muted">Total</p>
+                          <p className="text-lg font-mono text-text-primary">{dbPerf.connections?.total_connections ?? '—'}</p>
+                        </div>
+                        <div className="p-3 bg-surface-tertiary rounded-lg text-center">
+                          <p className="text-xs text-text-muted">Active</p>
+                          <p className="text-lg font-mono text-status-success">{dbPerf.connections?.active ?? '—'}</p>
+                        </div>
+                        <div className="p-3 bg-surface-tertiary rounded-lg text-center">
+                          <p className="text-xs text-text-muted">Idle</p>
+                          <p className="text-lg font-mono text-text-secondary">{dbPerf.connections?.idle ?? '—'}</p>
+                        </div>
+                        <div className="p-3 bg-surface-tertiary rounded-lg text-center">
+                          <p className="text-xs text-text-muted">Idle in Txn</p>
+                          <p className="text-lg font-mono text-status-warning">{dbPerf.connections?.idle_in_transaction ?? '—'}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Slow Queries */}
+                    <div>
+                      <h4 className="text-sm font-medium text-text-primary mb-2">Slow Queries</h4>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b border-border-subtle">
+                              <th className="text-left py-2 px-3 text-text-muted font-medium">Query</th>
+                              <th className="text-right py-2 px-3 text-text-muted font-medium">Calls</th>
+                              <th className="text-right py-2 px-3 text-text-muted font-medium">Mean (ms)</th>
+                              <th className="text-right py-2 px-3 text-text-muted font-medium">Total (ms)</th>
+                              <th className="text-right py-2 px-3 text-text-muted font-medium">Rows</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {dbPerf.slow_queries && dbPerf.slow_queries.length > 0 ? (
+                              dbPerf.slow_queries.map((q, i) => (
+                                <tr key={i} className="border-b border-border-subtle/50">
+                                  <td className="py-2 px-3 text-text-primary font-mono text-xs max-w-md truncate">{q.query ?? '—'}</td>
+                                  <td className="py-2 px-3 text-right font-mono text-text-secondary">
+                                    {q.calls != null ? formatNumber(q.calls) : '—'}
+                                  </td>
+                                  <td className="py-2 px-3 text-right font-mono text-text-secondary">
+                                    {q.mean_exec_time != null ? q.mean_exec_time.toFixed(1) : '—'}
+                                  </td>
+                                  <td className="py-2 px-3 text-right font-mono text-text-secondary">
+                                    {q.total_exec_time != null ? q.total_exec_time.toFixed(0) : '—'}
+                                  </td>
+                                  <td className="py-2 px-3 text-right font-mono text-text-muted">
+                                    {q.rows != null ? formatNumber(q.rows) : '—'}
+                                  </td>
+                                </tr>
+                              ))
+                            ) : (
+                              <tr>
+                                <td colSpan={5} className="py-4 text-center text-text-muted">
+                                  No slow queries (or pg_stat_statements not enabled)
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-text-muted text-center py-8">No database metrics available</p>
+                )}
               </Card>
             </>
           )}

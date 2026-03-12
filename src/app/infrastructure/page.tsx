@@ -10,11 +10,8 @@ import { useDebugger } from '@/hooks/useDebugger';
 import { useDebuggerDashboardState } from '@/hooks/useDashboardState';
 import { cn, formatNumber, formatBytes } from '@/lib/utils';
 import {
-  Server,
   Database,
   HardDrive,
-  Cpu,
-  Activity,
   Box,
   CircleDot,
   CheckCircle,
@@ -25,56 +22,66 @@ import {
 
 interface ContainerAppInfo {
   name: string;
-  display_name: string;
+  location: string;
   provisioning_state: string;
-  running_status: string;
-  replica_count: number;
-  cpu: string;
-  memory: string;
+  running_status: string | null;
   latest_revision: string;
 }
 
 interface PostgreSQLInfo {
-  server_name: string;
-  status: string;
-  version: string;
-  sku: string;
-  storage_used_bytes: number;
-  storage_limit_bytes: number;
-  connections_active: number;
-  connections_max: number;
-  cpu_percent: number;
-  memory_percent: number;
-}
-
-interface Neo4jInfo {
-  status: string;
-  version: string;
-  vm_name: string;
-  node_count: number;
-  relationship_count: number;
-  store_size_bytes: number;
-  heap_used_percent: number;
-  page_cache_hit_ratio: number;
-}
-
-interface ServiceBusInfo {
-  namespace: string;
-  status: string;
-  queues: {
-    name: string;
-    active_messages: number;
-    dead_letter_messages: number;
-    status: string;
+  health: { healthy: boolean; message: string };
+  connections: {
+    total_connections: number;
+    active: number;
+    idle: number;
+    idle_in_transaction: number;
+  };
+  tables: {
+    table_name: string;
+    total_size: string;
+    size_bytes: number;
+    row_estimate: number;
   }[];
 }
 
-interface StorageInfo {
-  account_name: string;
+interface Neo4jInfo {
+  health: { healthy: boolean; message: string };
+  stats: { node_count: number; edge_count: number };
+  node_counts: { label: string; count: number }[];
+  indexes: { name: string; type: string; labelsOrTypes: string[]; properties: string[]; state: string }[];
+}
+
+interface ServiceBusQueue {
+  name: string;
   status: string;
-  containers: number;
-  total_size_bytes: number;
-  blob_count: number;
+  max_size_mb: number;
+  requires_session: boolean;
+}
+
+interface ServiceBusMetric {
+  name: string;
+  active_message_count: number;
+  dead_letter_message_count: number;
+  scheduled_message_count: number;
+  transfer_message_count: number;
+  transfer_dead_letter_message_count: number;
+  total_message_count: number;
+  size_in_bytes: number;
+}
+
+interface ServiceBusInfo {
+  queues: ServiceBusQueue[];
+  metrics: ServiceBusMetric[];
+}
+
+interface StorageContainerInfo {
+  name: string;
+  last_modified: string | null;
+}
+
+interface StorageInfo {
+  containers: StorageContainerInfo[];
+  total_size: { total_bytes: number; blob_count: number };
 }
 
 /* ── Skeleton ── */
@@ -130,7 +137,7 @@ function InfrastructureContent() {
 
   const healthyApps = containerApps?.filter((a) => a.provisioning_state === 'Succeeded').length ?? 0;
   const totalApps = containerApps?.length ?? 0;
-  const totalDLQ = serviceBus?.queues?.reduce((sum, q) => sum + q.dead_letter_messages, 0) ?? 0;
+  const totalDLQ = serviceBus?.metrics?.reduce((sum, m) => sum + (m.dead_letter_message_count ?? 0), 0) ?? 0;
 
   return (
     <div className="flex h-screen bg-surface-secondary">
@@ -169,21 +176,21 @@ function InfrastructureContent() {
                 />
                 <MetricCard
                   title="PostgreSQL"
-                  value={postgresql?.status ?? '—'}
+                  value={postgresql?.health?.healthy ? 'Healthy' : postgresql?.health?.message ?? '—'}
                   format="raw"
                   icon={Database}
-                  iconColor={postgresql?.status === 'Ready' ? 'text-status-success' : 'text-status-warning'}
+                  iconColor={postgresql?.health?.healthy ? 'text-status-success' : 'text-status-warning'}
                 />
                 <MetricCard
                   title="Neo4j"
-                  value={neo4j?.status ?? '—'}
+                  value={neo4j?.health?.healthy ? 'Healthy' : neo4j?.health?.message ?? '—'}
                   format="raw"
                   icon={CircleDot}
-                  iconColor={neo4j?.status === 'running' || neo4j?.status === 'healthy' ? 'text-status-success' : 'text-status-warning'}
+                  iconColor={neo4j?.health?.healthy ? 'text-status-success' : 'text-status-warning'}
                 />
                 <MetricCard
                   title="Service Bus"
-                  value={serviceBus?.status ?? '—'}
+                  value={serviceBus?.queues ? `${serviceBus.queues.length} queues` : '—'}
                   format="raw"
                   icon={HardDrive}
                   iconColor={totalDLQ > 0 ? 'text-status-warning' : 'text-status-success'}
@@ -191,11 +198,11 @@ function InfrastructureContent() {
                 />
                 <MetricCard
                   title="Storage"
-                  value={storage ? formatBytes(storage.total_size_bytes) : '—'}
+                  value={storage?.total_size ? formatBytes(storage.total_size.total_bytes) : '—'}
                   format="raw"
                   icon={HardDrive}
                   iconColor="text-brand-blue"
-                  subtitle={storage ? `${storage.blob_count} blobs` : undefined}
+                  subtitle={storage?.total_size ? `${storage.total_size.blob_count} blobs` : undefined}
                 />
               </div>
 
@@ -223,10 +230,10 @@ function InfrastructureContent() {
                               <Box size={20} />
                             </div>
                             <div>
-                              <p className="text-sm font-medium text-text-primary">{app.display_name}</p>
-                              <p className="text-xs text-text-muted font-mono">{app.name}</p>
+                              <p className="text-sm font-medium text-text-primary">{app.name}</p>
+                              <p className="text-xs text-text-muted font-mono">{app.latest_revision ?? '—'}</p>
                               <p className="text-xs text-text-muted">
-                                {app.replica_count} replicas &middot; {app.cpu} vCPU &middot; {app.memory}
+                                {app.location ?? 'unknown'}
                               </p>
                             </div>
                           </div>
@@ -249,44 +256,49 @@ function InfrastructureContent() {
               {/* PostgreSQL + Neo4j */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* PostgreSQL */}
-                <Card title="PostgreSQL" subtitle={postgresql?.server_name}>
+                <Card title="PostgreSQL" subtitle={postgresql?.health?.healthy ? 'Connected' : postgresql?.health?.message}>
                   {postgresql ? (
                     <div className="space-y-3">
                       <div className="flex items-center justify-between p-3 bg-surface-tertiary rounded-lg">
-                        <span className="text-sm text-text-muted">Version</span>
-                        <span className="text-sm font-mono text-text-primary">{postgresql.version}</span>
-                      </div>
-                      <div className="flex items-center justify-between p-3 bg-surface-tertiary rounded-lg">
-                        <span className="text-sm text-text-muted">SKU</span>
-                        <span className="text-sm text-text-primary">{postgresql.sku}</span>
-                      </div>
-                      <div className="flex items-center justify-between p-3 bg-surface-tertiary rounded-lg">
-                        <span className="text-sm text-text-muted">Storage</span>
-                        <span className="text-sm font-mono text-text-primary">
-                          {formatBytes(postgresql.storage_used_bytes)} / {formatBytes(postgresql.storage_limit_bytes)}
+                        <span className="text-sm text-text-muted">Status</span>
+                        <span className={cn(
+                          'text-sm font-medium',
+                          postgresql.health?.healthy ? 'text-status-success' : 'text-status-error'
+                        )}>
+                          {postgresql.health?.healthy ? 'Healthy' : 'Unhealthy'}
                         </span>
                       </div>
                       <div className="flex items-center justify-between p-3 bg-surface-tertiary rounded-lg">
-                        <span className="text-sm text-text-muted">Connections</span>
+                        <span className="text-sm text-text-muted">Total Connections</span>
                         <span className="text-sm font-mono text-text-primary">
-                          {postgresql.connections_active} / {postgresql.connections_max}
+                          {postgresql.connections?.total_connections ?? '—'}
                         </span>
                       </div>
-                      <div>
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs text-text-muted">CPU</span>
-                          <span className="text-xs font-mono text-text-secondary">{postgresql.cpu_percent.toFixed(1)}%</span>
-                        </div>
-                        <div className="h-2 bg-surface rounded-full overflow-hidden">
-                          <div
-                            className={cn(
-                              'h-full rounded-full',
-                              postgresql.cpu_percent > 80 ? 'bg-status-error' : postgresql.cpu_percent > 60 ? 'bg-status-warning' : 'bg-status-success'
-                            )}
-                            style={{ width: `${Math.min(postgresql.cpu_percent, 100)}%` }}
-                          />
-                        </div>
+                      <div className="flex items-center justify-between p-3 bg-surface-tertiary rounded-lg">
+                        <span className="text-sm text-text-muted">Active / Idle</span>
+                        <span className="text-sm font-mono text-text-primary">
+                          {postgresql.connections?.active ?? 0} / {postgresql.connections?.idle ?? 0}
+                        </span>
                       </div>
+                      <div className="flex items-center justify-between p-3 bg-surface-tertiary rounded-lg">
+                        <span className="text-sm text-text-muted">Idle in Transaction</span>
+                        <span className="text-sm font-mono text-text-primary">
+                          {postgresql.connections?.idle_in_transaction ?? 0}
+                        </span>
+                      </div>
+                      {postgresql.tables && postgresql.tables.length > 0 && (
+                        <div className="space-y-1">
+                          <span className="text-xs text-text-muted font-medium">Top Tables</span>
+                          {postgresql.tables.slice(0, 5).map((t) => (
+                            <div key={t.table_name} className="flex items-center justify-between p-2 bg-surface-tertiary rounded-lg text-xs">
+                              <span className="font-mono text-text-primary truncate mr-2">{t.table_name}</span>
+                              <span className="text-text-secondary whitespace-nowrap">
+                                {t.total_size} &middot; ~{formatNumber(t.row_estimate ?? 0)} rows
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <p className="text-text-muted text-center py-8">No PostgreSQL data</p>
@@ -294,49 +306,51 @@ function InfrastructureContent() {
                 </Card>
 
                 {/* Neo4j */}
-                <Card title="Neo4j" subtitle={neo4j?.vm_name}>
+                <Card title="Neo4j" subtitle={neo4j?.health?.healthy ? 'Connected' : neo4j?.health?.message}>
                   {neo4j ? (
                     <div className="space-y-3">
                       <div className="flex items-center justify-between p-3 bg-surface-tertiary rounded-lg">
-                        <span className="text-sm text-text-muted">Version</span>
-                        <span className="text-sm font-mono text-text-primary">{neo4j.version}</span>
-                      </div>
-                      <div className="flex items-center justify-between p-3 bg-surface-tertiary rounded-lg">
-                        <span className="text-sm text-text-muted">Nodes</span>
-                        <span className="text-sm font-mono text-text-primary">{formatNumber(neo4j.node_count)}</span>
-                      </div>
-                      <div className="flex items-center justify-between p-3 bg-surface-tertiary rounded-lg">
-                        <span className="text-sm text-text-muted">Relationships</span>
-                        <span className="text-sm font-mono text-text-primary">{formatNumber(neo4j.relationship_count)}</span>
-                      </div>
-                      <div className="flex items-center justify-between p-3 bg-surface-tertiary rounded-lg">
-                        <span className="text-sm text-text-muted">Store Size</span>
-                        <span className="text-sm font-mono text-text-primary">{formatBytes(neo4j.store_size_bytes)}</span>
-                      </div>
-                      <div className="flex items-center justify-between p-3 bg-surface-tertiary rounded-lg">
-                        <span className="text-sm text-text-muted">Page Cache Hit Ratio</span>
+                        <span className="text-sm text-text-muted">Status</span>
                         <span className={cn(
-                          'text-sm font-mono',
-                          neo4j.page_cache_hit_ratio > 0.95 ? 'text-status-success' : 'text-status-warning'
+                          'text-sm font-medium',
+                          neo4j.health?.healthy ? 'text-status-success' : 'text-status-error'
                         )}>
-                          {(neo4j.page_cache_hit_ratio * 100).toFixed(1)}%
+                          {neo4j.health?.healthy ? 'Healthy' : 'Unhealthy'}
                         </span>
                       </div>
-                      <div>
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs text-text-muted">Heap Used</span>
-                          <span className="text-xs font-mono text-text-secondary">{neo4j.heap_used_percent.toFixed(1)}%</span>
-                        </div>
-                        <div className="h-2 bg-surface rounded-full overflow-hidden">
-                          <div
-                            className={cn(
-                              'h-full rounded-full',
-                              neo4j.heap_used_percent > 80 ? 'bg-status-error' : neo4j.heap_used_percent > 60 ? 'bg-status-warning' : 'bg-status-success'
-                            )}
-                            style={{ width: `${Math.min(neo4j.heap_used_percent, 100)}%` }}
-                          />
-                        </div>
+                      <div className="flex items-center justify-between p-3 bg-surface-tertiary rounded-lg">
+                        <span className="text-sm text-text-muted">Total Nodes</span>
+                        <span className="text-sm font-mono text-text-primary">{formatNumber(neo4j.stats?.node_count ?? 0)}</span>
                       </div>
+                      <div className="flex items-center justify-between p-3 bg-surface-tertiary rounded-lg">
+                        <span className="text-sm text-text-muted">Total Edges</span>
+                        <span className="text-sm font-mono text-text-primary">{formatNumber(neo4j.stats?.edge_count ?? 0)}</span>
+                      </div>
+                      {neo4j.node_counts && neo4j.node_counts.length > 0 && (
+                        <div className="space-y-1">
+                          <span className="text-xs text-text-muted font-medium">Node Labels</span>
+                          {neo4j.node_counts.slice(0, 6).map((nc) => (
+                            <div key={nc.label} className="flex items-center justify-between p-2 bg-surface-tertiary rounded-lg text-xs">
+                              <span className="font-mono text-text-primary">{nc.label}</span>
+                              <span className="text-text-secondary">{formatNumber(nc.count ?? 0)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {neo4j.indexes && neo4j.indexes.length > 0 && (
+                        <div className="space-y-1">
+                          <span className="text-xs text-text-muted font-medium">Indexes ({neo4j.indexes.length})</span>
+                          {neo4j.indexes.slice(0, 4).map((idx) => (
+                            <div key={idx.name} className="flex items-center justify-between p-2 bg-surface-tertiary rounded-lg text-xs">
+                              <span className="font-mono text-text-primary truncate mr-2">{idx.name}</span>
+                              <span className={cn(
+                                'text-xs font-medium',
+                                idx.state === 'ONLINE' ? 'text-status-success' : 'text-status-warning'
+                              )}>{idx.state}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <p className="text-text-muted text-center py-8">No Neo4j data</p>
@@ -345,7 +359,7 @@ function InfrastructureContent() {
               </div>
 
               {/* Service Bus Queues */}
-              <Card title="Service Bus Queues" subtitle={serviceBus?.namespace}>
+              <Card title="Service Bus Queues" subtitle={serviceBus?.queues ? `${serviceBus.queues.length} queues` : undefined}>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
@@ -358,23 +372,26 @@ function InfrastructureContent() {
                     </thead>
                     <tbody>
                       {serviceBus?.queues && serviceBus.queues.length > 0 ? (
-                        serviceBus.queues.map((q) => (
-                          <tr key={q.name} className="border-b border-border-subtle/50 hover:bg-surface-tertiary/50">
-                            <td className="py-2 px-3 font-medium text-text-primary">{q.name}</td>
-                            <td className="py-2 px-3 text-right font-mono text-text-secondary">
-                              {formatNumber(q.active_messages)}
-                            </td>
-                            <td className={cn(
-                              'py-2 px-3 text-right font-mono',
-                              q.dead_letter_messages > 0 ? 'text-status-error font-semibold' : 'text-text-secondary'
-                            )}>
-                              {formatNumber(q.dead_letter_messages)}
-                            </td>
-                            <td className="py-2 px-3 text-center">
-                              <StatusBadge status={q.status === 'Active' ? 'healthy' : q.status} />
-                            </td>
-                          </tr>
-                        ))
+                        serviceBus.queues.map((q) => {
+                          const metric = serviceBus.metrics?.find((m) => m.name === q.name);
+                          return (
+                            <tr key={q.name} className="border-b border-border-subtle/50 hover:bg-surface-tertiary/50">
+                              <td className="py-2 px-3 font-medium text-text-primary">{q.name}</td>
+                              <td className="py-2 px-3 text-right font-mono text-text-secondary">
+                                {formatNumber(metric?.active_message_count ?? 0)}
+                              </td>
+                              <td className={cn(
+                                'py-2 px-3 text-right font-mono',
+                                (metric?.dead_letter_message_count ?? 0) > 0 ? 'text-status-error font-semibold' : 'text-text-secondary'
+                              )}>
+                                {formatNumber(metric?.dead_letter_message_count ?? 0)}
+                              </td>
+                              <td className="py-2 px-3 text-center">
+                                <StatusBadge status={q.status === 'Active' ? 'healthy' : q.status} />
+                              </td>
+                            </tr>
+                          );
+                        })
                       ) : (
                         <tr>
                           <td colSpan={4} className="py-8 text-center text-text-muted">

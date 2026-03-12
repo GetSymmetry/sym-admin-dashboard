@@ -4,18 +4,13 @@ import { useState, useCallback, Suspense } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 import { Card } from '@/components/ui/Card';
-import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useDebugger } from '@/hooks/useDebugger';
 import { useDebuggerDashboardState } from '@/hooks/useDashboardState';
 import { debuggerClient } from '@/lib/api/client';
-import { cn, timeAgo } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import {
-  ScrollText,
   Play,
-  Save,
   BookOpen,
-  Clock,
-  ChevronDown,
   ChevronRight,
   Loader2,
 } from 'lucide-react';
@@ -32,10 +27,9 @@ interface LogEntry {
 }
 
 interface SavedQuery {
-  id: string;
   name: string;
   query: string;
-  created_at: string;
+  description: string;
 }
 
 /* ── Content ── */
@@ -69,6 +63,13 @@ function LogsContent() {
     setTimeout(() => setIsRefreshing(false), 800);
   };
 
+  const parseTimeRangeToHours = (range: string): number => {
+    const match = range.match(/^(\d+)(h|d)$/);
+    if (!match) return 24;
+    const value = parseInt(match[1], 10);
+    return match[2] === 'd' ? value * 24 : value;
+  };
+
   const executeQuery = useCallback(async () => {
     if (!kql.trim()) return;
     setIsQuerying(true);
@@ -76,7 +77,7 @@ function LogsContent() {
     try {
       const response = await debuggerClient.post<LogEntry[]>('/debug/logs/query', {
         query: kql,
-        timeRange,
+        timespan_hours: parseTimeRangeToHours(timeRange),
       });
       setResults(response.data);
     } catch (err: any) {
@@ -186,14 +187,17 @@ function LogsContent() {
                     <div className="w-6 h-6 border-2 border-brand-blue/30 border-t-brand-blue rounded-full animate-spin" />
                   </div>
                 ) : savedQueries && savedQueries.length > 0 ? (
-                  savedQueries.map((sq) => (
+                  savedQueries.map((sq, idx) => (
                     <button
-                      key={sq.id}
+                      key={`${sq.name}-${idx}`}
                       onClick={() => loadSavedQuery(sq)}
                       className="w-full flex items-center justify-between p-3 bg-surface-tertiary rounded-lg hover:bg-surface-hover transition-colors text-left"
                     >
                       <div>
                         <p className="text-sm font-medium text-text-primary">{sq.name}</p>
+                        {sq.description && (
+                          <p className="text-xs text-text-muted">{sq.description}</p>
+                        )}
                         <p className="text-xs font-mono text-text-muted truncate max-w-md">{sq.query}</p>
                       </div>
                       <ChevronRight size={14} className="text-text-muted" />

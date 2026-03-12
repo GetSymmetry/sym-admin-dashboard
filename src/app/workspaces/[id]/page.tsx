@@ -14,10 +14,7 @@ import { cn, timeAgo, formatNumber } from '@/lib/utils';
 import {
   ArrowLeft,
   Users,
-  MessageSquare,
   Database,
-  Activity,
-  Briefcase,
   Clock,
 } from 'lucide-react';
 
@@ -31,28 +28,37 @@ interface WorkspaceDetail {
   created_at: string;
   goal: string | null;
   member_count: number;
-  conversation_count: number;
-  knowledge_unit_count: number;
+}
+
+interface GraphStats {
+  node_count: number;
+  edge_count: number;
+}
+
+interface JobStat {
+  status: string;
+  job_type: string;
+  count: number;
+  avg_duration_secs: number | null;
 }
 
 interface WorkspaceHealth {
-  status: string;
-  graph_node_count: number;
-  graph_edge_count: number;
-  last_ingestion: string | null;
-  pending_jobs: number;
-  failed_jobs_24h: number;
-  avg_query_time_ms: number;
+  workspace: WorkspaceDetail | null;
+  job_stats: JobStat[];
+  graph_stats: GraphStats;
+  health_score: string;
+  failed_jobs: number;
+  total_jobs: number;
 }
 
 interface WorkspaceJob {
   id: string;
   job_type: string;
   status: string;
+  retry_count: number;
   created_at: string;
   completed_at: string | null;
-  duration_secs: number | null;
-  error_message: string | null;
+  blob_path: string | null;
 }
 
 /* ── Content ── */
@@ -145,7 +151,7 @@ function WorkspaceDetailContent() {
                     )}
                   </div>
                   {health && (
-                    <StatusBadge status={health.status} pulse={health.status !== 'healthy'} />
+                    <StatusBadge status={health.health_score} pulse={health.health_score !== 'healthy'} />
                   )}
                 </div>
               </Card>
@@ -159,14 +165,14 @@ function WorkspaceDetailContent() {
                   iconColor="text-brand-blue"
                 />
                 <MetricCard
-                  title="Conversations"
-                  value={workspace?.conversation_count ?? '—'}
-                  icon={MessageSquare}
+                  title="Graph Nodes"
+                  value={health?.graph_stats?.node_count ?? '—'}
+                  icon={Database}
                   iconColor="text-brand-blue"
                 />
                 <MetricCard
-                  title="Knowledge Units"
-                  value={workspace?.knowledge_unit_count ?? '—'}
+                  title="Graph Edges"
+                  value={health?.graph_stats?.edge_count ?? '—'}
                   icon={Database}
                   iconColor="text-brand-blue"
                 />
@@ -179,28 +185,22 @@ function WorkspaceDetailContent() {
                 />
               </div>
 
-              {/* Health + Graph Stats */}
+              {/* Health + Job Stats */}
               {health && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <Card title="Health Overview">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between p-3 bg-surface-tertiary rounded-lg">
+                        <span className="text-sm text-text-muted">Health Score</span>
+                        <StatusBadge status={health.health_score} />
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-surface-tertiary rounded-lg">
                         <span className="text-sm text-text-muted">Graph Nodes</span>
-                        <span className="text-sm font-mono text-text-primary">{formatNumber(health.graph_node_count)}</span>
+                        <span className="text-sm font-mono text-text-primary">{formatNumber(health.graph_stats?.node_count ?? 0)}</span>
                       </div>
                       <div className="flex items-center justify-between p-3 bg-surface-tertiary rounded-lg">
                         <span className="text-sm text-text-muted">Graph Edges</span>
-                        <span className="text-sm font-mono text-text-primary">{formatNumber(health.graph_edge_count)}</span>
-                      </div>
-                      <div className="flex items-center justify-between p-3 bg-surface-tertiary rounded-lg">
-                        <span className="text-sm text-text-muted">Last Ingestion</span>
-                        <span className="text-sm text-text-secondary">
-                          {health.last_ingestion ? timeAgo(health.last_ingestion) : 'Never'}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between p-3 bg-surface-tertiary rounded-lg">
-                        <span className="text-sm text-text-muted">Avg Query Time</span>
-                        <span className="text-sm font-mono text-text-primary">{health.avg_query_time_ms.toFixed(0)}ms</span>
+                        <span className="text-sm font-mono text-text-primary">{formatNumber(health.graph_stats?.edge_count ?? 0)}</span>
                       </div>
                     </div>
                   </Card>
@@ -208,23 +208,26 @@ function WorkspaceDetailContent() {
                   <Card title="Job Summary">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between p-3 bg-surface-tertiary rounded-lg">
-                        <span className="text-sm text-text-muted">Pending Jobs</span>
-                        <span className={cn(
-                          'text-sm font-mono',
-                          health.pending_jobs > 0 ? 'text-status-warning' : 'text-text-primary'
-                        )}>
-                          {health.pending_jobs}
+                        <span className="text-sm text-text-muted">Total Jobs</span>
+                        <span className="text-sm font-mono text-text-primary">
+                          {health.total_jobs}
                         </span>
                       </div>
                       <div className="flex items-center justify-between p-3 bg-surface-tertiary rounded-lg">
-                        <span className="text-sm text-text-muted">Failed Jobs (24h)</span>
+                        <span className="text-sm text-text-muted">Failed Jobs</span>
                         <span className={cn(
                           'text-sm font-mono',
-                          health.failed_jobs_24h > 0 ? 'text-status-error' : 'text-text-primary'
+                          health.failed_jobs > 0 ? 'text-status-error' : 'text-text-primary'
                         )}>
-                          {health.failed_jobs_24h}
+                          {health.failed_jobs}
                         </span>
                       </div>
+                      {health.job_stats?.length > 0 && health.job_stats.map((stat, i) => (
+                        <div key={i} className="flex items-center justify-between p-3 bg-surface-tertiary rounded-lg">
+                          <span className="text-sm text-text-muted">{stat.job_type} ({stat.status})</span>
+                          <span className="text-sm font-mono text-text-primary">{stat.count}</span>
+                        </div>
+                      ))}
                     </div>
                   </Card>
                 </div>
@@ -238,9 +241,9 @@ function WorkspaceDetailContent() {
                       <tr className="border-b border-border-subtle">
                         <th className="text-left py-2 px-3 text-text-muted font-medium">Type</th>
                         <th className="text-center py-2 px-3 text-text-muted font-medium">Status</th>
-                        <th className="text-right py-2 px-3 text-text-muted font-medium">Duration</th>
+                        <th className="text-right py-2 px-3 text-text-muted font-medium">Retries</th>
                         <th className="text-right py-2 px-3 text-text-muted font-medium">Created</th>
-                        <th className="text-left py-2 px-3 text-text-muted font-medium">Error</th>
+                        <th className="text-right py-2 px-3 text-text-muted font-medium">Completed</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -252,13 +255,13 @@ function WorkspaceDetailContent() {
                               <StatusBadge status={job.status} />
                             </td>
                             <td className="py-2 px-3 text-right font-mono text-text-secondary">
-                              {job.duration_secs != null ? `${job.duration_secs.toFixed(1)}s` : '—'}
+                              {job.retry_count ?? 0}
                             </td>
                             <td className="py-2 px-3 text-right text-text-muted text-xs">
                               {timeAgo(job.created_at)}
                             </td>
-                            <td className="py-2 px-3 text-xs text-status-error font-mono max-w-xs truncate">
-                              {job.error_message || '—'}
+                            <td className="py-2 px-3 text-right text-text-muted text-xs">
+                              {job.completed_at ? timeAgo(job.completed_at) : '—'}
                             </td>
                           </tr>
                         ))
