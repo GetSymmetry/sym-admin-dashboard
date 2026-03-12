@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, Suspense } from 'react';
-import Link from 'next/link';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 import { Card } from '@/components/ui/Card';
@@ -13,28 +12,24 @@ import { useDebuggerDashboardState } from '@/hooks/useDashboardState';
 import { cn, timeAgo } from '@/lib/utils';
 import {
   AlertTriangle,
-  TrendingUp,
-  TrendingDown,
   Server,
-  ExternalLink,
   Layers,
 } from 'lucide-react';
 
 /* ── Types ── */
 
 interface TimelinePoint {
-  time: string;
-  count: number;
-  severity_3: number;
-  severity_4: number;
+  timestamp: string;
+  cloud_RoleName: string;
+  count_: number;
 }
 
 interface ErrorCluster {
-  problem_id: string;
+  problemId: string;
   type: string;
-  message: string;
-  service: string;
-  count: number;
+  outerMessage: string;
+  cloud_RoleName: string;
+  count_: number;
   earliest: string;
   latest: string;
 }
@@ -42,10 +37,11 @@ interface ErrorCluster {
 interface FailedJob {
   id: string;
   job_type: string;
-  workspace_id: string;
-  error_message: string;
-  failed_at: string;
-  attempts: number;
+  status: string;
+  retry_count: number;
+  created_at: string;
+  completed_at: string;
+  workspace_name: string;
 }
 
 /* ── Skeleton ── */
@@ -94,11 +90,11 @@ function ErrorsContent() {
     setTimeout(() => setIsRefreshing(false), 800);
   };
 
-  const totalErrors = timeline?.reduce((sum, p) => sum + p.count, 0) ?? 0;
-  const totalSev4 = timeline?.reduce((sum, p) => sum + (p.severity_4 ?? 0), 0) ?? 0;
+  const totalErrors = timeline?.reduce((sum, p) => sum + (p.count_ ?? 0), 0) ?? 0;
   const uniqueServices = clusters
-    ? new Set(clusters.map((c) => c.service)).size
+    ? new Set(clusters.map((c) => c.cloud_RoleName)).size
     : 0;
+  const topClusterCount = clusters?.[0]?.count_ ?? 0;
 
   return (
     <div className="flex h-screen bg-surface-secondary">
@@ -135,10 +131,10 @@ function ErrorsContent() {
                   iconColor={totalErrors > 0 ? 'text-status-error' : 'text-status-success'}
                 />
                 <MetricCard
-                  title="Critical (Sev 4)"
-                  value={totalSev4}
+                  title="Top Cluster"
+                  value={topClusterCount}
                   icon={AlertTriangle}
-                  iconColor={totalSev4 > 0 ? 'text-status-error' : 'text-status-success'}
+                  iconColor={topClusterCount > 10 ? 'text-status-error' : 'text-status-warning'}
                 />
                 <MetricCard
                   title="Error Clusters"
@@ -155,17 +151,15 @@ function ErrorsContent() {
               </div>
 
               {/* Timeline Chart */}
-              <Card title="Error Timeline" subtitle={`${timeRange} — by severity`}>
+              <Card title="Error Timeline" subtitle={`${timeRange} — by service`}>
                 {timeline && timeline.length > 0 ? (
                   <AreaChart
                     data={timeline}
-                    xField="time"
+                    xField="timestamp"
                     yFields={[
-                      { key: 'severity_3', color: '#f59e0b', name: 'Warning (3)' },
-                      { key: 'severity_4', color: '#ef4444', name: 'Error (4)' },
+                      { key: 'count_', color: '#ef4444', name: 'Errors' },
                     ]}
                     height={200}
-                    stacked
                   />
                 ) : (
                   <p className="text-status-success text-center py-8">No errors in this timeframe</p>
@@ -188,15 +182,15 @@ function ErrorsContent() {
                     <tbody>
                       {clusters && clusters.length > 0 ? (
                         clusters.map((c) => (
-                          <tr key={c.problem_id} className="border-b border-border-subtle/50 hover:bg-surface-tertiary/50">
+                          <tr key={c.problemId} className="border-b border-border-subtle/50 hover:bg-surface-tertiary/50">
                             <td className="py-2 px-3 font-mono text-text-secondary text-xs">{c.type}</td>
-                            <td className="py-2 px-3 text-text-primary max-w-xs truncate">{c.message}</td>
+                            <td className="py-2 px-3 text-text-primary max-w-xs truncate">{c.outerMessage}</td>
                             <td className="py-2 px-3">
                               <span className="px-2 py-0.5 bg-brand-blue/10 text-brand-blue rounded text-xs font-medium">
-                                {c.service}
+                                {c.cloud_RoleName}
                               </span>
                             </td>
-                            <td className="py-2 px-3 text-right font-mono text-status-error font-semibold">{c.count}</td>
+                            <td className="py-2 px-3 text-right font-mono text-status-error font-semibold">{c.count_}</td>
                             <td className="py-2 px-3 text-right text-text-muted text-xs">{timeAgo(c.latest)}</td>
                           </tr>
                         ))
@@ -222,20 +216,20 @@ function ErrorsContent() {
                         className="flex items-start justify-between p-3 bg-status-error/5 border border-status-error/20 rounded-lg"
                       >
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-mono text-text-primary truncate">{job.error_message}</p>
+                          <p className="text-sm font-mono text-text-primary truncate">{job.job_type} — {job.workspace_name ?? 'unknown'}</p>
                           <div className="flex items-center gap-2 mt-1">
                             <span className="text-xs px-2 py-0.5 bg-surface-tertiary rounded text-text-muted">
                               {job.job_type}
                             </span>
                             <span className="text-xs text-text-muted font-mono">
-                              ws:{job.workspace_id.substring(0, 8)}
+                              {job.workspace_name ?? 'N/A'}
                             </span>
                             <span className="text-xs text-text-muted">
-                              {job.attempts} attempt{job.attempts !== 1 ? 's' : ''}
+                              {job.retry_count} retr{job.retry_count !== 1 ? 'ies' : 'y'}
                             </span>
                           </div>
                         </div>
-                        <span className="text-xs text-text-muted shrink-0 ml-4">{timeAgo(job.failed_at)}</span>
+                        <span className="text-xs text-text-muted shrink-0 ml-4">{timeAgo(job.created_at)}</span>
                       </div>
                     ))
                   ) : (

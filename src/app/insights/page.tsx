@@ -9,54 +9,45 @@ import { AreaChart } from '@/components/charts/AreaChart';
 import { BarChart } from '@/components/charts/BarChart';
 import { useDebugger } from '@/hooks/useDebugger';
 import { useDebuggerDashboardState } from '@/hooks/useDashboardState';
-import { formatCurrency, formatNumber, formatPercent } from '@/lib/utils';
+import { formatCurrency, formatNumber } from '@/lib/utils';
 import {
   TrendingUp,
   Users,
-  MousePointerClick,
-  Layers,
-  Repeat,
-  DollarSign,
 } from 'lucide-react';
 
 /* ── Types ── */
 
 interface GrowthPoint {
   date: string;
-  users: number;
-  workspaces: number;
-  conversations: number;
+  new_users: number;
 }
 
 interface EngagementMetrics {
   dau: number;
   wau: number;
   mau: number;
-  dau_wau_ratio: number;
-  avg_session_duration_secs: number;
-  avg_conversations_per_user: number;
+  total: number;
 }
 
 interface FeatureAdoption {
-  feature: string;
-  adoption_percent: number;
-  total_uses: number;
+  total_workspaces: number;
+  auto_connect_enabled: number;
+  knowledge_active_30d: number;
+  conversation_active_30d: number;
 }
 
-interface RetentionMetrics {
-  cohort: string;
-  week_1: number;
-  week_2: number;
-  week_4: number;
-  week_8: number;
+interface RetentionCohort {
+  cohort_week: string;
+  cohort_size: number;
+  retained: number;
 }
 
 interface UnitEconomics {
+  total_cost_30d: number;
   cost_per_user: number;
-  cost_per_conversation: number;
-  llm_cost_per_query: number;
-  infra_cost_per_user: number;
-  total_monthly_cost: number;
+  cost_per_workspace: number;
+  total_users: number;
+  total_workspaces: number;
 }
 
 /* ── Skeleton ── */
@@ -97,10 +88,10 @@ function InsightsContent() {
     useDebugger<EngagementMetrics>('/debug/insights/engagement', { timeRange });
 
   const { data: features, isLoading: featLoading } =
-    useDebugger<FeatureAdoption[]>('/debug/insights/feature-adoption', { timeRange });
+    useDebugger<FeatureAdoption>('/debug/insights/feature-adoption', { timeRange });
 
   const { data: retention, isLoading: retLoading } =
-    useDebugger<RetentionMetrics[]>('/debug/insights/retention');
+    useDebugger<RetentionCohort[]>('/debug/insights/retention');
 
   const { data: economics, isLoading: econLoading } =
     useDebugger<UnitEconomics>('/debug/insights/unit-economics', { timeRange });
@@ -141,15 +132,13 @@ function InsightsContent() {
           ) : (
             <>
               {/* Growth Chart */}
-              <Card title="Growth" subtitle={`Users, workspaces & conversations (${timeRange})`}>
+              <Card title="User Growth" subtitle={`New user registrations (${timeRange})`}>
                 {growth && growth.length > 0 ? (
                   <AreaChart
                     data={growth}
                     xField="date"
                     yFields={[
-                      { key: 'users', color: '#4077ed', name: 'Users' },
-                      { key: 'workspaces', color: '#22c55e', name: 'Workspaces' },
-                      { key: 'conversations', color: '#f59e0b', name: 'Conversations' },
+                      { key: 'new_users', color: '#4077ed', name: 'New Users' },
                     ]}
                     height={260}
                   />
@@ -159,7 +148,7 @@ function InsightsContent() {
               </Card>
 
               {/* Engagement Metrics */}
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <MetricCard
                   title="DAU"
                   value={engagement?.dau ?? '—'}
@@ -179,36 +168,26 @@ function InsightsContent() {
                   subtitle="Monthly active users"
                 />
                 <MetricCard
-                  title="DAU/WAU Ratio"
-                  value={engagement?.dau_wau_ratio != null ? `${(engagement.dau_wau_ratio * 100).toFixed(1)}%` : '—'}
+                  title="DAU/WAU"
+                  value={engagement?.dau != null && engagement?.wau ? `${((engagement.dau / engagement.wau) * 100).toFixed(1)}%` : '—'}
                   format="raw"
                   icon={TrendingUp}
-                  subtitle="Stickiness"
-                />
-                <MetricCard
-                  title="Avg Session"
-                  value={engagement?.avg_session_duration_secs != null ? `${(engagement.avg_session_duration_secs / 60).toFixed(1)}m` : '—'}
-                  format="raw"
-                  icon={MousePointerClick}
-                  subtitle="Average duration"
-                />
-                <MetricCard
-                  title="Convos/User"
-                  value={engagement?.avg_conversations_per_user != null ? engagement.avg_conversations_per_user.toFixed(1) : '—'}
-                  format="raw"
-                  icon={Layers}
-                  subtitle="Per active user"
+                  subtitle="Stickiness ratio"
                 />
               </div>
 
               {/* Feature Adoption + Retention */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card title="Feature Adoption" subtitle="Usage across features">
-                  {features && features.length > 0 ? (
+                <Card title="Feature Adoption" subtitle="Active workspaces by feature (30d)">
+                  {features ? (
                     <BarChart
-                      data={features.map((f) => ({ feature: f.feature, adoption: f.adoption_percent }))}
+                      data={[
+                        { feature: 'Auto-Connect', count: features.auto_connect_enabled ?? 0 },
+                        { feature: 'Knowledge', count: features.knowledge_active_30d ?? 0 },
+                        { feature: 'Conversation', count: features.conversation_active_30d ?? 0 },
+                      ]}
                       xField="feature"
-                      yField="adoption"
+                      yField="count"
                       height={240}
                       horizontal
                     />
@@ -217,29 +196,30 @@ function InsightsContent() {
                   )}
                 </Card>
 
-                <Card title="Retention Cohorts" subtitle="Weekly retention %">
+                <Card title="Retention Cohorts" subtitle="Weekly cohort retention">
                   {retention && retention.length > 0 ? (
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
                         <thead>
                           <tr className="border-b border-border-subtle">
-                            <th className="text-left py-2 px-3 text-text-muted font-medium">Cohort</th>
-                            <th className="text-right py-2 px-3 text-text-muted font-medium">Wk 1</th>
-                            <th className="text-right py-2 px-3 text-text-muted font-medium">Wk 2</th>
-                            <th className="text-right py-2 px-3 text-text-muted font-medium">Wk 4</th>
-                            <th className="text-right py-2 px-3 text-text-muted font-medium">Wk 8</th>
+                            <th className="text-left py-2 px-3 text-text-muted font-medium">Cohort Week</th>
+                            <th className="text-right py-2 px-3 text-text-muted font-medium">Size</th>
+                            <th className="text-right py-2 px-3 text-text-muted font-medium">Retained</th>
+                            <th className="text-right py-2 px-3 text-text-muted font-medium">Rate</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {retention.map((row) => (
-                            <tr key={row.cohort} className="border-b border-border-subtle/50">
-                              <td className="py-2 px-3 text-text-primary font-mono">{row.cohort}</td>
-                              <td className="py-2 px-3 text-right text-text-secondary">{row.week_1.toFixed(0)}%</td>
-                              <td className="py-2 px-3 text-right text-text-secondary">{row.week_2.toFixed(0)}%</td>
-                              <td className="py-2 px-3 text-right text-text-secondary">{row.week_4.toFixed(0)}%</td>
-                              <td className="py-2 px-3 text-right text-text-secondary">{row.week_8.toFixed(0)}%</td>
-                            </tr>
-                          ))}
+                          {retention.map((row) => {
+                            const rate = row.cohort_size > 0 ? (row.retained / row.cohort_size * 100) : 0;
+                            return (
+                              <tr key={row.cohort_week} className="border-b border-border-subtle/50">
+                                <td className="py-2 px-3 text-text-primary font-mono">{row.cohort_week}</td>
+                                <td className="py-2 px-3 text-right text-text-secondary">{row.cohort_size}</td>
+                                <td className="py-2 px-3 text-right text-text-secondary">{row.retained}</td>
+                                <td className="py-2 px-3 text-right text-text-secondary font-semibold">{rate.toFixed(0)}%</td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
                     </div>
@@ -250,9 +230,15 @@ function InsightsContent() {
               </div>
 
               {/* Unit Economics */}
-              <Card title="Unit Economics" subtitle="Cost efficiency metrics">
+              <Card title="Unit Economics" subtitle="30-day cost efficiency">
                 {economics ? (
                   <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+                    <div className="p-3 bg-surface-tertiary rounded-lg text-center">
+                      <p className="text-xs text-text-muted mb-1">Total (30d)</p>
+                      <p className="text-lg font-mono font-semibold text-status-warning">
+                        {formatCurrency(economics.total_cost_30d)}
+                      </p>
+                    </div>
                     <div className="p-3 bg-surface-tertiary rounded-lg text-center">
                       <p className="text-xs text-text-muted mb-1">Cost/User</p>
                       <p className="text-lg font-mono font-semibold text-text-primary">
@@ -260,27 +246,21 @@ function InsightsContent() {
                       </p>
                     </div>
                     <div className="p-3 bg-surface-tertiary rounded-lg text-center">
-                      <p className="text-xs text-text-muted mb-1">Cost/Conversation</p>
+                      <p className="text-xs text-text-muted mb-1">Cost/Workspace</p>
                       <p className="text-lg font-mono font-semibold text-text-primary">
-                        {formatCurrency(economics.cost_per_conversation)}
+                        {formatCurrency(economics.cost_per_workspace)}
                       </p>
                     </div>
                     <div className="p-3 bg-surface-tertiary rounded-lg text-center">
-                      <p className="text-xs text-text-muted mb-1">LLM Cost/Query</p>
+                      <p className="text-xs text-text-muted mb-1">Total Users</p>
                       <p className="text-lg font-mono font-semibold text-text-primary">
-                        {formatCurrency(economics.llm_cost_per_query)}
+                        {formatNumber(economics.total_users)}
                       </p>
                     </div>
                     <div className="p-3 bg-surface-tertiary rounded-lg text-center">
-                      <p className="text-xs text-text-muted mb-1">Infra/User</p>
+                      <p className="text-xs text-text-muted mb-1">Total Workspaces</p>
                       <p className="text-lg font-mono font-semibold text-text-primary">
-                        {formatCurrency(economics.infra_cost_per_user)}
-                      </p>
-                    </div>
-                    <div className="p-3 bg-surface-tertiary rounded-lg text-center">
-                      <p className="text-xs text-text-muted mb-1">Monthly Total</p>
-                      <p className="text-lg font-mono font-semibold text-status-warning">
-                        {formatCurrency(economics.total_monthly_cost)}
+                        {formatNumber(economics.total_workspaces)}
                       </p>
                     </div>
                   </div>
