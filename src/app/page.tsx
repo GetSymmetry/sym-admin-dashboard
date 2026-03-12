@@ -4,103 +4,106 @@ import { useState, Suspense } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 import { MetricCard } from '@/components/dashboard/MetricCard';
-import { ServiceStatus } from '@/components/dashboard/ServiceStatus';
-import { ErrorsList } from '@/components/dashboard/ErrorsList';
-import { PerformanceTable } from '@/components/dashboard/PerformanceTable';
-import { QueueStatus } from '@/components/dashboard/QueueStatus';
-import { AreaChart } from '@/components/charts/AreaChart';
-import { BarChart } from '@/components/charts/BarChart';
 import { Card } from '@/components/ui/Card';
-import { timeAgo, displayValue, formatCurrency } from '@/lib/utils';
-import { useDashboardState } from '@/hooks/useDashboardState';
-import useSWR from 'swr';
+import { StatusBadge } from '@/components/ui/StatusBadge';
+import { BarChart } from '@/components/charts/BarChart';
+import { useDebugger } from '@/hooks/useDebugger';
+import { useDebuggerDashboardState } from '@/hooks/useDashboardState';
+import { formatCurrency, formatNumber, cn, timeAgo } from '@/lib/utils';
 import {
-  AlertTriangle,
-  DollarSign,
-  Zap,
+  Activity,
   Users,
   Briefcase,
-  MessageSquare,
-  Database,
+  DollarSign,
+  AlertTriangle,
+  TrendingUp,
+  Zap,
 } from 'lucide-react';
 
-const fetcher = (url: string) => fetch(url).then(res => res.json());
+/* ── Response types ── */
+
+interface PulseMetrics {
+  total_users: number;
+  active_users_7d: number;
+  total_workspaces: number;
+  total_conversations: number;
+  error_rate: number;
+  avg_latency_ms: number;
+}
+
+interface TopWorkspace {
+  id: string;
+  name: string;
+  organization: string;
+  conversations: number;
+  knowledge_units: number;
+  last_active: string;
+}
+
+interface PipelineStep {
+  stage: string;
+  status: string;
+  jobs_pending: number;
+  jobs_failed_24h: number;
+  avg_duration_secs: number;
+}
+
+interface CostItem {
+  service: string;
+  cost: number;
+  currency: string;
+}
+
+/* ── Skeleton ── */
+
+function DashboardSkeleton() {
+  return (
+    <div className="space-y-6 animate-pulse">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="h-28 bg-surface rounded-card border border-border-subtle" />
+        ))}
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="h-80 bg-surface rounded-card border border-border-subtle" />
+        <div className="h-80 bg-surface rounded-card border border-border-subtle" />
+      </div>
+      <div className="h-64 bg-surface rounded-card border border-border-subtle" />
+    </div>
+  );
+}
+
+/* ── Main content ── */
 
 function DashboardContent() {
   const [collapsed, setCollapsed] = useState(false);
-  const { environment, timeRange, setEnvironment, setTimeRange } = useDashboardState();
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const {
+    region,
+    setRegion,
+    timeRange,
+    setTimeRange,
+    availableRegions,
+  } = useDebuggerDashboardState();
 
-  // Fetch data with time range
-  const { data, isLoading, mutate } = useSWR(
-    `/api/metrics?env=${environment}&range=${timeRange}`,
-    fetcher,
-    { refreshInterval: 60000 }
-  );
-  const { data: dbData } = useSWR(
-    `/api/database?env=${environment}`,
-    fetcher,
-    { refreshInterval: 120000 }
-  );
-  const { data: llmData } = useSWR(
-    `/api/llm?env=${environment}&range=${timeRange}`,
-    fetcher,
-    { refreshInterval: 120000 }
-  );
+  const { data: pulse, isLoading: pulseLoading, refresh: refreshPulse } =
+    useDebugger<PulseMetrics>('/debug/insights/pulse', { timeRange }, { refreshInterval: 60000 });
+
+  const { data: topWorkspaces, isLoading: wsLoading } =
+    useDebugger<TopWorkspace[]>('/debug/insights/top-workspaces', { timeRange, limit: '10' });
+
+  const { data: pipeline, isLoading: pipeLoading } =
+    useDebugger<PipelineStep[]>('/debug/insights/pipeline-health');
+
+  const { data: costs, isLoading: costLoading } =
+    useDebugger<CostItem[]>('/debug/insights/cost-breakdown', { timeRange });
+
+  const isLoading = pulseLoading && !pulse;
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await mutate();
-    setTimeout(() => setIsRefreshing(false), 1000);
-  };
-
-  // Generate time series data based on selected time range
-  // Uses real data from llmData.overTime if available, otherwise generates placeholder
-  const getTimeSeriesData = () => {
-    // Use real LLM cost over time data if available
-    if (llmData?.overTime && llmData.overTime.length > 0) {
-      return llmData.overTime.map((item: { time: string; cost: number; tokens?: number }) => ({
-        time: item.time,
-        requests: item.tokens || 0,
-        errors: 0, // Would need separate error time series
-        cost: item.cost,
-      }));
-    }
-    
-    // Generate placeholder data aligned to time range
-    const dataPoints = [];
-    const pointsCount = timeRange === '15m' ? 15 : timeRange === '1h' ? 12 : timeRange === '6h' ? 24 : timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 24;
-    const isDaily = timeRange.includes('d');
-    
-    for (let i = pointsCount - 1; i >= 0; i--) {
-      const d = new Date();
-      if (isDaily) {
-        d.setDate(d.getDate() - i);
-        dataPoints.push({
-          time: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-          requests: 0,
-          errors: 0,
-        });
-      } else {
-        d.setHours(d.getHours() - i);
-        dataPoints.push({
-          time: d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
-          requests: 0,
-          errors: 0,
-        });
-      }
-    }
-    return dataPoints;
-  };
-
-  const timeSeriesData = getTimeSeriesData();
-
-  // Format time range for display
-  const formatTimeRange = (range: string) => {
-    const match = range.match(/(\d+)([hd])/);
-    if (!match) return range;
-    const [, num, unit] = match;
-    return `${num}${unit === 'h' ? 'h' : 'd'}`;
+    await refreshPulse();
+    setTimeout(() => setIsRefreshing(false), 800);
   };
 
   return (
@@ -108,167 +111,149 @@ function DashboardContent() {
       <Sidebar
         collapsed={collapsed}
         onToggle={() => setCollapsed(!collapsed)}
-        environment={environment}
-        onEnvironmentChange={setEnvironment}
+        environment="prod"
       />
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header
           title="System Overview"
-          environment={environment}
-          lastUpdated={data?.timestamp ? timeAgo(data.timestamp) : undefined}
+          environment="prod"
           onRefresh={handleRefresh}
-          isRefreshing={isRefreshing || isLoading}
+          isRefreshing={isRefreshing || pulseLoading}
           timeRange={timeRange}
           onTimeRangeChange={setTimeRange}
+          region={region}
+          onRegionChange={setRegion}
+          availableRegions={availableRegions}
         />
 
         <main className="flex-1 overflow-auto p-6 space-y-6">
-          {isLoading && !data ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center">
-                <div className="w-12 h-12 border-4 border-brand-blue/30 border-t-brand-blue rounded-full animate-spin mx-auto mb-4" />
-                <p className="text-text-muted">Loading metrics from Azure...</p>
-              </div>
-            </div>
+          {isLoading ? (
+            <DashboardSkeleton />
           ) : (
             <>
-              {/* Key Metrics Row */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+              {/* Pulse Metric Cards */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <MetricCard
                   title="Total Users"
-                  value={displayValue(dbData?.counts?.users)}
+                  value={pulse?.total_users ?? '—'}
                   icon={Users}
-                  subtitle="Registered users"
+                  subtitle={pulse?.active_users_7d != null ? `${formatNumber(pulse.active_users_7d)} active 7d` : undefined}
                 />
                 <MetricCard
                   title="Workspaces"
-                  value={displayValue(dbData?.counts?.workspaces)}
+                  value={pulse?.total_workspaces ?? '—'}
                   icon={Briefcase}
-                  subtitle={dbData?.counts?.organizations != null ? `${dbData.counts.organizations} orgs` : '—'}
-                />
-                <MetricCard
-                  title="Knowledge Units"
-                  value={displayValue(dbData?.counts?.knowledgeUnits)}
-                  icon={Database}
-                  subtitle="Total KUs"
+                  subtitle="Active workspaces"
                 />
                 <MetricCard
                   title="Conversations"
-                  value={displayValue(dbData?.counts?.conversations)}
-                  icon={MessageSquare}
-                  subtitle="Chat sessions"
+                  value={pulse?.total_conversations ?? '—'}
+                  icon={Activity}
+                  subtitle="Total sessions"
                 />
                 <MetricCard
-                  title={`LLM Cost (${formatTimeRange(timeRange)})`}
-                  value={llmData?.totals?.totalCost != null || data?.overview?.llmCost24h != null
-                    ? formatCurrency(llmData?.totals?.totalCost ?? data?.overview?.llmCost24h ?? 0)
-                    : '—'}
-                  icon={DollarSign}
-                  subtitle={llmData?.totals?.totalCalls != null || data?.overview?.llmCalls24h != null
-                    ? `${(llmData?.totals?.totalCalls ?? data?.overview?.llmCalls24h ?? 0).toLocaleString()} calls`
-                    : '—'}
-                />
-                <MetricCard
-                  title={`Errors (${formatTimeRange(timeRange)})`}
-                  value={displayValue(data?.overview?.totalErrors)}
+                  title="Error Rate"
+                  value={pulse?.error_rate != null ? `${pulse.error_rate.toFixed(2)}%` : '—'}
+                  format="raw"
                   icon={AlertTriangle}
-                  subtitle={data?.overview?.totalErrors != null 
-                    ? (data.overview.totalErrors > 0 ? 'Needs attention' : 'All clear')
-                    : '—'}
+                  iconColor={pulse?.error_rate != null && pulse.error_rate > 1 ? 'text-status-error' : 'text-status-success'}
+                  subtitle={pulse?.avg_latency_ms != null ? `${pulse.avg_latency_ms.toFixed(0)}ms avg latency` : undefined}
                 />
               </div>
 
-              {/* Charts Row */}
+              {/* Two-column: Top Workspaces + Pipeline Health */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card
-                  title="Traffic Overview"
-                  subtitle={`Requests & Errors (${formatTimeRange(timeRange)})`}
-                >
-                  <AreaChart
-                    data={timeSeriesData}
-                    xField="time"
-                    yFields={[
-                      { key: 'requests', color: '#4077ed', name: 'Requests' },
-                      { key: 'errors', color: '#ef4444', name: 'Errors' },
-                    ]}
-                    height={240}
-                  />
-                </Card>
-
-                <Card
-                  title="Requests by Service"
-                  subtitle={`Distribution (${formatTimeRange(timeRange)})`}
-                >
-                  <BarChart
-                    data={data?.requestsByService?.slice(0, 5) || []}
-                    xField="service"
-                    yField="count"
-                    height={240}
-                    horizontal
-                  />
-                </Card>
-              </div>
-
-              {/* Status Grid */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <ServiceStatus
-                  services={data?.services || []}
-                />
-                <QueueStatus
-                  queues={data?.queues || []}
-                />
-                <ErrorsList
-                  errors={data?.recentErrors || []}
-                />
-              </div>
-
-              {/* LLM & Performance */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card
-                  title="LLM Usage by Model"
-                  subtitle={`Cost & tokens (${formatTimeRange(timeRange)})`}
-                >
-                  <div className="space-y-3">
-                    {(llmData?.byModel || data?.llmByModel)?.map((model: any, index: number) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between p-3 bg-background-secondary rounded-lg"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-brand-blue flex items-center justify-center">
-                            <Zap size={16} className="text-white" />
+                {/* Top Workspaces */}
+                <Card title="Top Workspaces" subtitle="By activity">
+                  <div className="space-y-2 max-h-[360px] overflow-y-auto">
+                    {wsLoading && !topWorkspaces ? (
+                      <div className="flex items-center justify-center py-8">
+                        <div className="w-6 h-6 border-2 border-brand-blue/30 border-t-brand-blue rounded-full animate-spin" />
+                      </div>
+                    ) : topWorkspaces && topWorkspaces.length > 0 ? (
+                      topWorkspaces.map((ws) => (
+                        <div
+                          key={ws.id}
+                          className="flex items-center justify-between p-3 bg-surface-tertiary rounded-lg hover:bg-surface-hover transition-colors"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium text-text-primary truncate">{ws.name}</p>
+                            <p className="text-xs text-text-muted truncate">{ws.organization}</p>
                           </div>
-                          <div>
-                            <p className="text-sm font-semibold text-text-primary">
-                              {model.model || 'Unknown'}
+                          <div className="text-right ml-4 shrink-0">
+                            <p className="text-sm font-mono text-text-primary">
+                              {ws.conversations.toLocaleString()} convos
                             </p>
                             <p className="text-xs text-text-muted">
-                              {model.calls?.toLocaleString()} calls
+                              {ws.knowledge_units.toLocaleString()} KUs
                             </p>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-sm font-semibold text-warning">
-                            ${(model.totalCost || model.cost || 0).toFixed(2)}
-                          </p>
-                          <p className="text-xs text-text-muted">
-                            {((model.inputTokens || 0) + (model.outputTokens || 0) || model.tokens || 0).toLocaleString()} tokens
-                          </p>
-                        </div>
-                      </div>
-                    )) || (
-                      <p className="text-text-muted text-center py-8">
-                        No LLM data available
-                      </p>
+                      ))
+                    ) : (
+                      <p className="text-text-muted text-center py-8">No workspace data</p>
                     )}
                   </div>
                 </Card>
 
-                <PerformanceTable
-                  data={data?.performance || []}
-                />
+                {/* Pipeline Health */}
+                <Card title="Pipeline Health" subtitle="Processing stages">
+                  <div className="space-y-2 max-h-[360px] overflow-y-auto">
+                    {pipeLoading && !pipeline ? (
+                      <div className="flex items-center justify-center py-8">
+                        <div className="w-6 h-6 border-2 border-brand-blue/30 border-t-brand-blue rounded-full animate-spin" />
+                      </div>
+                    ) : pipeline && pipeline.length > 0 ? (
+                      pipeline.map((step) => (
+                        <div
+                          key={step.stage}
+                          className="flex items-center justify-between p-3 bg-surface-tertiary rounded-lg"
+                        >
+                          <div className="flex items-center gap-3">
+                            <Zap size={16} className="text-brand-blue" />
+                            <div>
+                              <p className="text-sm font-medium text-text-primary">{step.stage}</p>
+                              <p className="text-xs text-text-muted">
+                                {step.jobs_pending} pending &middot; {step.avg_duration_secs.toFixed(1)}s avg
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            {step.jobs_failed_24h > 0 && (
+                              <span className="text-xs text-status-error font-mono">
+                                {step.jobs_failed_24h} failed
+                              </span>
+                            )}
+                            <StatusBadge status={step.status} pulse={step.status !== 'healthy'} />
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-text-muted text-center py-8">No pipeline data</p>
+                    )}
+                  </div>
+                </Card>
               </div>
+
+              {/* Cost Breakdown */}
+              <Card title="Cost Breakdown" subtitle={`By service (${timeRange})`}>
+                {costLoading && !costs ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="w-6 h-6 border-2 border-brand-blue/30 border-t-brand-blue rounded-full animate-spin" />
+                  </div>
+                ) : costs && costs.length > 0 ? (
+                  <BarChart
+                    data={costs.map((c) => ({ service: c.service, cost: c.cost }))}
+                    xField="service"
+                    yField="cost"
+                    height={240}
+                    horizontal
+                  />
+                ) : (
+                  <p className="text-text-muted text-center py-8">No cost data available</p>
+                )}
+              </Card>
             </>
           )}
         </main>
@@ -277,14 +262,15 @@ function DashboardContent() {
   );
 }
 
-// Wrap with Suspense for useSearchParams
 export default function DashboardPage() {
   return (
-    <Suspense fallback={
-      <div className="flex h-screen items-center justify-center bg-background-secondary">
-        <div className="w-12 h-12 border-4 border-brand-blue/30 border-t-brand-blue rounded-full animate-spin" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex h-screen items-center justify-center bg-surface-secondary">
+          <div className="w-12 h-12 border-4 border-brand-blue/30 border-t-brand-blue rounded-full animate-spin" />
+        </div>
+      }
+    >
       <DashboardContent />
     </Suspense>
   );

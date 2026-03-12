@@ -1,10 +1,13 @@
 'use client';
 
-import { useState, useRef, useEffect, Suspense } from 'react';
+import { useState, useRef, useEffect, useCallback, Suspense } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { DynamicUI } from '@/components/ai/DynamicUI';
-import { useDashboardState } from '@/hooks/useDashboardState';
+import { useDebuggerDashboardState } from '@/hooks/useDashboardState';
+import { debuggerClient } from '@/lib/api/client';
 import { Sparkles, Send, User, MessageCircle } from 'lucide-react';
+
+/* ── Types ── */
 
 interface Message {
   id: string;
@@ -24,8 +27,10 @@ const EXAMPLE_PROMPTS = [
   "What's the Service Bus queue status?",
 ];
 
+/* ── Content ── */
+
 function AIContent() {
-  const { environment, setEnvironment } = useDashboardState();
+  const { region } = useDebuggerDashboardState();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -40,7 +45,7 @@ function AIContent() {
     scrollToBottom();
   }, [messages]);
 
-  const handleSubmit = async (e?: React.FormEvent, promptOverride?: string) => {
+  const handleSubmit = useCallback(async (e?: React.FormEvent, promptOverride?: string) => {
     e?.preventDefault();
     const prompt = promptOverride || input;
     if (!prompt.trim() || isLoading) return;
@@ -65,28 +70,21 @@ function AIContent() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/ai/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: [...messages, userMessage].map((m) => ({
-            role: m.role,
-            content: m.content,
-          })),
-        }),
+      const response = await debuggerClient.post<{
+        message: string;
+        ui?: unknown[];
+      }>('/debug/ai/chat', {
+        messages: [...messages, userMessage].map((m) => ({
+          role: m.role,
+          content: m.content,
+        })),
       });
-
-      const data = await response.json();
-
-      if (data.error) {
-        throw new Error(data.error);
-      }
 
       const assistantMessage: Message = {
         id: (Date.now() + 2).toString(),
         role: 'assistant',
-        content: data.message || '',
-        ui: data.ui || [],
+        content: response.data?.message || '',
+        ui: response.data?.ui || [],
         timestamp: new Date(),
       };
 
@@ -107,7 +105,7 @@ function AIContent() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [input, isLoading, messages]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -118,10 +116,7 @@ function AIContent() {
 
   return (
     <div className="min-h-screen bg-surface-secondary flex">
-      <Sidebar 
-        environment={environment}
-        onEnvironmentChange={setEnvironment}
-      />
+      <Sidebar environment="prod" />
 
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
         {/* Header */}
@@ -206,7 +201,7 @@ function AIContent() {
                             </div>
                           ) : (
                             <div className="bg-surface border border-border-subtle rounded-lg p-4">
-                              <p className="text-text-secondary leading-relaxed">{message.content}</p>
+                              <p className="text-text-secondary leading-relaxed whitespace-pre-wrap">{message.content}</p>
                             </div>
                           )
                         )}
@@ -254,7 +249,7 @@ function AIContent() {
             </button>
           </form>
           <p className="text-center text-xs text-text-muted mt-3">
-            AI can query PostgreSQL, App Insights, and Azure metrics to answer your questions
+            AI can query PostgreSQL, Neo4j, App Insights, and Azure metrics to answer your questions
           </p>
         </div>
       </main>
@@ -264,11 +259,13 @@ function AIContent() {
 
 export default function AIPage() {
   return (
-    <Suspense fallback={
-      <div className="flex h-screen items-center justify-center bg-background-secondary">
-        <div className="w-12 h-12 border-4 border-brand-blue/30 border-t-brand-blue rounded-full animate-spin" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex h-screen items-center justify-center bg-surface-secondary">
+          <div className="w-12 h-12 border-4 border-brand-blue/30 border-t-brand-blue rounded-full animate-spin" />
+        </div>
+      }
+    >
       <AIContent />
     </Suspense>
   );

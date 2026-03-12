@@ -8,32 +8,51 @@ import {
   Server,
   Cpu,
   AlertTriangle,
-  Rocket,
-  DollarSign,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Zap,
   Sparkles,
   Box,
-  Bell,
-  Wallet,
   CircleDot,
+  Activity,
+  ScrollText,
+  Users,
+  HeartPulse,
+  Shield,
+  Gauge,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useState } from 'react';
 
-const navItems = [
-  { href: '/', label: 'Overview', icon: LayoutDashboard },
-  { href: '/ai', label: 'AI Assistant', icon: Sparkles },
-  { href: '/container-apps', label: 'Container Apps', icon: Box },
-  { href: '/neo4j', label: 'Neo4j', icon: CircleDot },
-  { href: '/database', label: 'Database', icon: Database },
-  { href: '/llm', label: 'LLM & Costs', icon: DollarSign },
-  { href: '/infrastructure', label: 'Infrastructure', icon: Server },
-  { href: '/jobs', label: 'Jobs & Queues', icon: Cpu },
+interface NavItem {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ size?: number }>;
+  children?: NavItem[];
+}
+
+const navItems: NavItem[] = [
+  { href: '/', label: 'Home', icon: LayoutDashboard },
+  { href: '/insights', label: 'Insights', icon: Activity },
   { href: '/errors', label: 'Errors', icon: AlertTriangle },
-  { href: '/alerts', label: 'Alerts', icon: Bell },
-  { href: '/costs', label: 'Costs & Budget', icon: Wallet },
-  { href: '/deployments', label: 'Deployments', icon: Rocket },
+  { href: '/scalability', label: 'Scalability', icon: Gauge },
+  {
+    href: '/infrastructure',
+    label: 'Infrastructure',
+    icon: Server,
+    children: [
+      { href: '/container-apps', label: 'Container Apps', icon: Box },
+      { href: '/neo4j', label: 'Neo4j', icon: CircleDot },
+      { href: '/database', label: 'Database', icon: Database },
+      { href: '/jobs', label: 'Jobs & Queues', icon: Cpu },
+    ],
+  },
+  { href: '/logs', label: 'Logs', icon: ScrollText },
+  { href: '/workspaces', label: 'Workspaces', icon: Users },
+  { href: '/data-health', label: 'Data Health', icon: HeartPulse },
+  { href: '/admin', label: 'Admin', icon: Shield },
+  { href: '/ai', label: 'AI Chat', icon: Sparkles },
 ];
 
 interface SidebarProps {
@@ -51,11 +70,27 @@ export function Sidebar({
 }: SidebarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
+    '/infrastructure': true,
+  });
+
   // Preserve query params when navigating
   const getHrefWithParams = (href: string) => {
     const params = searchParams.toString();
     return params ? `${href}?${params}` : href;
+  };
+
+  const toggleGroup = (href: string) => {
+    setExpandedGroups((prev) => ({ ...prev, [href]: !prev[href] }));
+  };
+
+  const isItemActive = (item: NavItem): boolean => {
+    if (pathname === item.href) return true;
+    if (item.href !== '/' && pathname.startsWith(item.href)) return true;
+    if (item.children) {
+      return item.children.some((child) => pathname === child.href || pathname.startsWith(child.href));
+    }
+    return false;
   };
 
   return (
@@ -73,7 +108,7 @@ export function Sidebar({
               <Zap size={18} className="text-text-inverted" />
             </div>
             <span className="text-body-base font-semibold text-text-primary">
-              Sym Admin
+              Sym Debugger
             </span>
           </div>
         )}
@@ -88,27 +123,82 @@ export function Sidebar({
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-3 space-y-1">
+      <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
-          const isActive =
-            pathname === item.href ||
-            (item.href !== '/' && pathname.startsWith(item.href));
+          const isActive = isItemActive(item);
+          const hasChildren = item.children && item.children.length > 0;
+          const isExpanded = expandedGroups[item.href] ?? false;
+
           return (
-            <Link
-              key={item.href}
-              href={getHrefWithParams(item.href)}
-              className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-sds-200 transition-all duration-200',
-                isActive
-                  ? 'bg-brand-blue/10 text-brand-blue'
-                  : 'text-text-secondary hover:bg-surface-tertiary hover:text-text-primary'
+            <div key={item.href}>
+              {hasChildren ? (
+                <>
+                  <button
+                    onClick={() => toggleGroup(item.href)}
+                    className={cn(
+                      'w-full flex items-center gap-3 px-3 py-2.5 rounded-sds-200 transition-all duration-200',
+                      isActive
+                        ? 'bg-brand-blue/10 text-brand-blue'
+                        : 'text-text-secondary hover:bg-surface-tertiary hover:text-text-primary'
+                    )}
+                  >
+                    <item.icon size={20} />
+                    {!collapsed && (
+                      <>
+                        <span className="flex-1 text-left text-body-small font-medium">
+                          {item.label}
+                        </span>
+                        <ChevronDown
+                          size={14}
+                          className={cn(
+                            'transition-transform duration-200',
+                            isExpanded && 'rotate-180'
+                          )}
+                        />
+                      </>
+                    )}
+                  </button>
+                  {!collapsed && isExpanded && (
+                    <div className="ml-5 mt-1 space-y-0.5 border-l border-border-subtle pl-3">
+                      {item.children!.map((child) => {
+                        const childActive =
+                          pathname === child.href || pathname.startsWith(child.href);
+                        return (
+                          <Link
+                            key={child.href}
+                            href={getHrefWithParams(child.href)}
+                            className={cn(
+                              'flex items-center gap-2 px-2 py-2 rounded-sds-100 transition-all duration-200 text-body-small',
+                              childActive
+                                ? 'text-brand-blue font-medium'
+                                : 'text-text-muted hover:text-text-primary hover:bg-surface-tertiary'
+                            )}
+                          >
+                            <child.icon size={16} />
+                            <span>{child.label}</span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <Link
+                  href={getHrefWithParams(item.href)}
+                  className={cn(
+                    'flex items-center gap-3 px-3 py-2.5 rounded-sds-200 transition-all duration-200',
+                    isActive
+                      ? 'bg-brand-blue/10 text-brand-blue'
+                      : 'text-text-secondary hover:bg-surface-tertiary hover:text-text-primary'
+                  )}
+                >
+                  <item.icon size={20} />
+                  {!collapsed && (
+                    <span className="text-body-small font-medium">{item.label}</span>
+                  )}
+                </Link>
               )}
-            >
-              <item.icon size={20} />
-              {!collapsed && (
-                <span className="text-body-small font-medium">{item.label}</span>
-              )}
-            </Link>
+            </div>
           );
         })}
       </nav>
@@ -128,7 +218,7 @@ export function Sidebar({
                       : 'text-text-muted hover:text-text-secondary'
                   )}
                 >
-                  🔴 PROD
+                  PROD
                 </button>
                 <button
                   onClick={() => onEnvironmentChange('test')}
@@ -139,7 +229,7 @@ export function Sidebar({
                       : 'text-text-muted hover:text-text-secondary'
                   )}
                 >
-                  🟢 TEST
+                  TEST
                 </button>
               </div>
             </div>
