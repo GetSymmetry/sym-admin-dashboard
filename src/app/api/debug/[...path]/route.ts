@@ -15,29 +15,32 @@ const DEBUGGER_URL = (
   process.env.NEXT_PUBLIC_DEBUGGER_URL || "http://localhost:8004/api"
 ).trim();
 
-async function proxy(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
-  const { path } = await params;
-  const pathStr = path.join("/");
-  const search = request.nextUrl.search;
-  const targetUrl = `${DEBUGGER_URL}/debug/${pathStr}${search}`;
-
-  const token = request.cookies.get("sym_debug_token")?.value;
-  const headers: Record<string, string> = {
-    "Content-Type": request.headers.get("content-type") || "application/json",
-  };
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-  const region = request.headers.get("x-debug-region");
-  if (region) {
-    headers["X-Debug-Region"] = region;
-  }
-
-  const body = request.method !== "GET" && request.method !== "HEAD"
-    ? await request.text()
-    : undefined;
-
+async function proxy(
+  request: NextRequest,
+  context: { params: Promise<{ path: string[] }> }
+) {
   try {
+    const { path } = await context.params;
+    const pathStr = path.join("/");
+    const search = request.nextUrl.search;
+    const targetUrl = `${DEBUGGER_URL}/debug/${pathStr}${search}`;
+
+    const token = request.cookies.get("sym_debug_token")?.value;
+    const headers: Record<string, string> = {
+      "Content-Type": request.headers.get("content-type") || "application/json",
+    };
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    const region = request.headers.get("x-debug-region");
+    if (region) {
+      headers["X-Debug-Region"] = region;
+    }
+
+    const body = request.method !== "GET" && request.method !== "HEAD"
+      ? await request.text()
+      : undefined;
+
     const res = await fetch(targetUrl, {
       method: request.method,
       headers,
@@ -50,8 +53,9 @@ async function proxy(request: NextRequest, { params }: { params: Promise<{ path:
       headers: { "Content-Type": res.headers.get("content-type") || "application/json" },
     });
   } catch (err: any) {
+    console.error("[debug-proxy] error:", err);
     return NextResponse.json(
-      { error: "Debugger service unavailable", detail: err.message },
+      { error: "Debugger proxy error", detail: err?.message || String(err) },
       { status: 502 }
     );
   }
