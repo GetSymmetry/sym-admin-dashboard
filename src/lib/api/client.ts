@@ -5,9 +5,11 @@
  */
 import type { DebugResponse } from "./types";
 
-const BASE_URL = (
-  process.env.NEXT_PUBLIC_DEBUGGER_URL || "http://localhost:8004/api"
-).trim();
+// Client-side: proxy through /api/debug to attach auth token server-side.
+// Server-side (API routes): call debugger directly via NEXT_PUBLIC_DEBUGGER_URL.
+const BASE_URL = typeof window !== "undefined"
+  ? "/api"  // Client → Next.js proxy → debugger (cookie → Bearer token)
+  : (process.env.NEXT_PUBLIC_DEBUGGER_URL || "http://localhost:8004/api").trim();
 
 class DebuggerClient {
   private baseUrl: string;
@@ -39,14 +41,14 @@ class DebuggerClient {
     const res = await fetch(url, {
       ...options,
       headers,
-      credentials: "include", // Send httpOnly cookie
+      credentials: "same-origin", // Send httpOnly cookie to same-origin proxy
     });
 
     if (res.status === 401) {
-      if (typeof window !== "undefined") {
-        window.location.href = "/login";
-      }
-      throw new Error("Unauthorized");
+      // Don't redirect to login — 401 from debugger service means the
+      // request lacks a valid Bearer token, not that the dashboard session
+      // expired. Dashboard auth is handled by middleware + httpOnly cookie.
+      throw new Error("Debugger API authentication required");
     }
 
     if (!res.ok) {
