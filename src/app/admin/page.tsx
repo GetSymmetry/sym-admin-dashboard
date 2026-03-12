@@ -17,6 +17,7 @@ import {
   Check,
   X,
   Loader2,
+  AlertTriangle,
 } from 'lucide-react';
 
 /* ── Types ── */
@@ -105,6 +106,33 @@ function AdminContent() {
       setOrgSubmitting(false);
     }
   }, [orgName, refresh]);
+
+  // Purge queue form
+  const ALLOWED_QUEUES = ['batch-jobs', 'conversation-jobs', 'knowledge-jobs', 'live-ingestion-jobs'];
+  const [purgeQueue, setPurgeQueue] = useState(ALLOWED_QUEUES[0]);
+  const [purgeDlq, setPurgeDlq] = useState(true);
+  const [purgeSubmitting, setPurgeSubmitting] = useState(false);
+  const [purgeResult, setPurgeResult] = useState<string | null>(null);
+  const [purgeError, setPurgeError] = useState<string | null>(null);
+
+  const handlePurgeQueue = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPurgeSubmitting(true);
+    setPurgeError(null);
+    setPurgeResult(null);
+
+    try {
+      const res = await debuggerClient.post<{ message: string }>('/debug/admin/purge-queue', {
+        queue_name: purgeQueue,
+        include_dlq: purgeDlq,
+      });
+      setPurgeResult(res.data?.message || 'Queue purged successfully');
+    } catch (err: any) {
+      setPurgeError(err.message || 'Failed to purge queue');
+    } finally {
+      setPurgeSubmitting(false);
+    }
+  }, [purgeQueue, purgeDlq]);
 
   const userEntries = whitelist?.filter((e) => e.type === 'user') ?? [];
   const orgEntries = whitelist?.filter((e) => e.type === 'organization') ?? [];
@@ -213,6 +241,63 @@ function AdminContent() {
               </form>
             </Card>
           </div>
+
+          {/* Purge Queue */}
+          <Card title="Purge Service Bus Queue" subtitle="Clear stuck messages from a queue">
+            <form onSubmit={handlePurgeQueue} className="space-y-3">
+              <div className="flex flex-wrap gap-3 items-end">
+                <div className="flex-1 min-w-[200px]">
+                  <label className="block text-xs text-text-muted mb-1">Queue</label>
+                  <select
+                    value={purgeQueue}
+                    onChange={(e) => setPurgeQueue(e.target.value)}
+                    disabled={purgeSubmitting}
+                    className="w-full px-3 py-2.5 bg-surface-secondary border border-border-subtle rounded-lg text-sm text-text-primary focus:outline-none focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/20"
+                  >
+                    {ALLOWED_QUEUES.map((q) => (
+                      <option key={q} value={q}>{q}</option>
+                    ))}
+                  </select>
+                </div>
+                <label className="flex items-center gap-2 text-sm text-text-secondary cursor-pointer pb-1">
+                  <input
+                    type="checkbox"
+                    checked={purgeDlq}
+                    onChange={(e) => setPurgeDlq(e.target.checked)}
+                    disabled={purgeSubmitting}
+                    className="rounded border-border-subtle"
+                  />
+                  Include dead-letter
+                </label>
+                <button
+                  type="submit"
+                  disabled={purgeSubmitting}
+                  className={cn(
+                    'px-5 py-2.5 text-sm font-medium rounded-lg transition-colors',
+                    'bg-status-error text-white hover:bg-status-error/90',
+                    purgeSubmitting && 'opacity-50 cursor-not-allowed'
+                  )}
+                >
+                  {purgeSubmitting ? <Loader2 size={16} className="animate-spin" /> : (
+                    <span className="flex items-center gap-2"><Trash2 size={14} /> Purge</span>
+                  )}
+                </button>
+              </div>
+              {purgeResult && (
+                <div className="flex items-center gap-2 text-sm text-status-success">
+                  <Check size={14} /> {purgeResult}
+                </div>
+              )}
+              {purgeError && (
+                <div className="flex items-center gap-2 text-sm text-status-error">
+                  <AlertTriangle size={14} /> {purgeError}
+                </div>
+              )}
+              <p className="text-xs text-text-muted">
+                Drains all active and dead-letter messages. Handles session-enabled queues automatically.
+              </p>
+            </form>
+          </Card>
 
           {/* Whitelisted Users */}
           <Card
