@@ -50,7 +50,8 @@ interface MetricComponent {
 
 interface TableColumn {
   key: string;
-  label: string;
+  label?: string;
+  name?: string;
 }
 
 interface TableComponent {
@@ -275,7 +276,7 @@ function TableRenderer({ title, columns, rows }: TableComponent) {
                   key={col.key}
                   className="text-left text-text-muted font-semibold py-3 px-4 whitespace-nowrap"
                 >
-                  {col.label}
+                  {col.label || col.name || col.key}
                 </th>
               ))}
             </tr>
