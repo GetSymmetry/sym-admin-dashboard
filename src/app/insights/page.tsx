@@ -9,7 +9,7 @@ import { AreaChart } from '@/components/charts/AreaChart';
 import { BarChart } from '@/components/charts/BarChart';
 import { useDebugger } from '@/hooks/useDebugger';
 import { useDebuggerDashboardState } from '@/hooks/useDashboardState';
-import { cn, formatCurrency, formatNumber, timeAgo } from '@/lib/utils';
+import { cn, formatCurrency, formatNumber, timeAgo, timeRangeToParams } from '@/lib/utils';
 import {
   TrendingUp,
   Users,
@@ -89,20 +89,22 @@ function InsightsContent() {
     availableRegions,
   } = useDebuggerDashboardState();
 
+  const daysParams = timeRangeToParams(timeRange, 'days');
+
   const { data: growth, isLoading: growthLoading, refresh } =
-    useDebugger<GrowthPoint[]>('/debug/insights/growth', { timeRange });
+    useDebugger<GrowthPoint[]>('/debug/insights/growth', daysParams);
 
   const { data: engagement, isLoading: engLoading } =
-    useDebugger<EngagementMetrics>('/debug/insights/engagement', { timeRange });
+    useDebugger<EngagementMetrics>('/debug/insights/engagement');
 
   const { data: features, isLoading: featLoading } =
-    useDebugger<FeatureAdoption>('/debug/insights/feature-adoption', { timeRange });
+    useDebugger<FeatureAdoption>('/debug/insights/feature-adoption');
 
   const { data: retention, isLoading: retLoading } =
     useDebugger<RetentionCohort[]>('/debug/insights/retention');
 
   const { data: economics, isLoading: econLoading } =
-    useDebugger<UnitEconomics>('/debug/insights/unit-economics', { timeRange });
+    useDebugger<UnitEconomics>('/debug/insights/unit-economics', daysParams);
 
   const { data: activeUsers, isLoading: usersLoading } =
     useDebugger<ActiveUser[]>('/debug/insights/active-users', undefined, { refreshInterval: 60000 });

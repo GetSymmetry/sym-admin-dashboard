@@ -30,8 +30,8 @@ interface Neo4jHealth {
 }
 
 interface Neo4jStats {
-  total_nodes: number;
-  total_relationships: number;
+  node_count: number;
+  edge_count: number;
   store_size: string;
 }
 
@@ -142,14 +142,14 @@ function Neo4jContent() {
                 />
                 <MetricCard
                   title="Total Nodes"
-                  value={formatNumber(data?.stats?.total_nodes ?? 0)}
+                  value={formatNumber(data?.stats?.node_count ?? 0)}
                   format="raw"
                   icon={CircleDot}
                   iconColor="text-brand-blue"
                 />
                 <MetricCard
                   title="Total Relationships"
-                  value={formatNumber(data?.stats?.total_relationships ?? 0)}
+                  value={formatNumber(data?.stats?.edge_count ?? 0)}
                   format="raw"
                   icon={GitFork}
                   iconColor="text-brand-blue"
@@ -222,7 +222,7 @@ function Neo4jContent() {
                 {/* Node Counts */}
                 <Card
                   title="Node Counts"
-                  subtitle={`${data?.node_counts?.length ?? 0} labels, ${formatNumber(data?.stats?.total_nodes ?? 0)} total`}
+                  subtitle={`${data?.node_counts?.length ?? 0} labels, ${formatNumber(data?.stats?.node_count ?? 0)} total`}
                 >
                   {data?.node_counts && data.node_counts.length > 0 ? (
                     <div className="space-y-1.5">

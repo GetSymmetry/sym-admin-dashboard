@@ -9,7 +9,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { AreaChart } from '@/components/charts/AreaChart';
 import { useDebugger } from '@/hooks/useDebugger';
 import { useDebuggerDashboardState } from '@/hooks/useDashboardState';
-import { cn, timeAgo } from '@/lib/utils';
+import { cn, timeAgo, timeRangeToParams } from '@/lib/utils';
 import {
   AlertTriangle,
   Server,
@@ -72,14 +72,16 @@ function ErrorsContent() {
     availableRegions,
   } = useDebuggerDashboardState();
 
+  const hoursParams = timeRangeToParams(timeRange, 'hours');
+
   const { data: timeline, isLoading: tlLoading, refresh } =
-    useDebugger<TimelinePoint[]>('/debug/errors/timeline', { timeRange });
+    useDebugger<TimelinePoint[]>('/debug/errors/timeline', hoursParams);
 
   const { data: clusters, isLoading: clLoading } =
-    useDebugger<ErrorCluster[]>('/debug/errors/clusters', { timeRange });
+    useDebugger<ErrorCluster[]>('/debug/errors/clusters', hoursParams);
 
   const { data: failedJobs, isLoading: fjLoading } =
-    useDebugger<FailedJob[]>('/debug/errors/failed-jobs', { timeRange, limit: '25' });
+    useDebugger<FailedJob[]>('/debug/errors/failed-jobs', { ...hoursParams, limit: '25' });
 
   const isLoading = tlLoading && !timeline;
   const [isRefreshing, setIsRefreshing] = useState(false);

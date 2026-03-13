@@ -119,3 +119,21 @@ export function hasData(obj: unknown): boolean {
   if (typeof obj === 'object' && Object.keys(obj).length === 0) return false;
   return true;
 }
+
+/**
+ * Convert a UI time range (e.g. '24h', '7d', '30d') into the API query
+ * parameter(s) the debugger service expects.
+ */
+export function timeRangeToParams(
+  timeRange: string,
+  unit: 'hours' | 'days' = 'hours'
+): Record<string, string> {
+  const m = timeRange.match(/^(\d+)(h|d)$/);
+  if (!m) return {};
+  const value = parseInt(m[1], 10);
+  const suffix = m[2];
+  if (unit === 'days') {
+    return { days: suffix === 'd' ? String(value) : String(Math.max(1, Math.ceil(value / 24))) };
+  }
+  return { hours: suffix === 'h' ? String(value) : String(value * 24) };
+}

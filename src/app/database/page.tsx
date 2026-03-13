@@ -33,7 +33,7 @@ interface DatabaseCounts {
   users: number;
   organizations: number;
   workspaces: number;
-  knowledge_units: number;
+  knowledge_sections: number;
   conversations: number;
   total_jobs: number;
 }
@@ -42,7 +42,7 @@ interface DatabaseActivity {
   new_users: number;
   new_jobs: number;
   new_conversations: number;
-  new_kus: number;
+  new_knowledge_sections: number;
 }
 
 interface DatabaseJobs {
@@ -79,17 +79,20 @@ interface DatabaseUsers {
 interface DatabaseTable {
   table_name: string;
   total_size: string;
-  row_count: number;
+  row_estimate: number;
+  size_bytes?: number;
   dead_tuple_ratio?: number;
 }
 
 interface DatabaseSlowQuery {
-  query: string;
-  calls: number;
-  total_time_ms: number;
-  avg_time_ms: number;
-  max_time_ms: number;
-  rows: number;
+  table_name: string;
+  seq_scan: number;
+  seq_tup_read: number;
+  idx_scan: number;
+  idx_tup_fetch: number;
+  n_tup_ins: number;
+  n_tup_upd: number;
+  n_tup_del: number;
 }
 
 interface DatabaseIndex {
@@ -315,18 +318,18 @@ function DatabaseContent() {
                       <FileText className="w-5 h-5 text-info" />
                     </div>
                     <p className="text-2xl font-mono text-info">
-                      {displayValue(data?.activity?.new_kus)}
+                      {displayValue(data?.activity?.new_knowledge_sections)}
                     </p>
-                    <p className="text-xs text-text-muted mt-1">Knowledge Units</p>
+                    <p className="text-xs text-text-muted mt-1">Knowledge Sections</p>
                   </div>
                   <div className="p-4 bg-surface-tertiary rounded-xl text-center">
                     <div className="flex items-center justify-center mb-2">
                       <Database className="w-5 h-5 text-info" />
                     </div>
                     <p className="text-2xl font-mono text-info">
-                      {displayValue(data?.counts?.knowledge_units)}
+                      {displayValue(data?.counts?.knowledge_sections)}
                     </p>
-                    <p className="text-xs text-text-muted mt-1">Total KUs</p>
+                    <p className="text-xs text-text-muted mt-1">Total Sections</p>
                   </div>
                   <div className="p-4 bg-surface-tertiary rounded-xl text-center">
                     <div className="flex items-center justify-center mb-2">
@@ -426,8 +429,8 @@ function DatabaseContent() {
                   </div>
                 </Card>
 
-                {/* Query Stats — derived from slow_queries */}
-                <Card title="Query Statistics">
+                {/* Table Activity Stats */}
+                <Card title="Table Activity">
                   {data?.slow_queries?.length ? (
                     <div className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
@@ -435,35 +438,34 @@ function DatabaseContent() {
                           <p className="text-xl font-mono text-brand-blue">
                             {displayValue(data.slow_queries.length)}
                           </p>
-                          <p className="text-xs text-text-muted">Query Types</p>
+                          <p className="text-xs text-text-muted">Active Tables</p>
                         </div>
                         <div className="p-3 bg-surface-tertiary rounded-lg text-center">
                           <p className="text-xl font-mono text-info">
                             {(() => {
-                              const total = data.slow_queries.reduce((s, q) => s + q.calls, 0);
+                              const total = data.slow_queries.reduce((s, q) => s + (q.seq_scan ?? 0), 0);
                               return total > 1000 ? `${(total / 1000).toFixed(1)}K` : String(total);
                             })()}
                           </p>
-                          <p className="text-xs text-text-muted">Total Calls</p>
+                          <p className="text-xs text-text-muted">Seq Scans</p>
                         </div>
                         <div className="p-3 bg-surface-tertiary rounded-lg text-center">
-                          <p className="text-xl font-mono text-info">
+                          <p className="text-xl font-mono text-success">
                             {(() => {
-                              const totalCalls = data.slow_queries.reduce((s, q) => s + q.calls, 0);
-                              const totalTime = data.slow_queries.reduce((s, q) => s + q.total_time_ms, 0);
-                              return totalCalls > 0 ? `${(totalTime / totalCalls).toFixed(1)}ms` : '—';
+                              const total = data.slow_queries.reduce((s, q) => s + (q.idx_scan ?? 0), 0);
+                              return total > 1000 ? `${(total / 1000).toFixed(1)}K` : String(total);
                             })()}
                           </p>
-                          <p className="text-xs text-text-muted">Avg Time</p>
+                          <p className="text-xs text-text-muted">Index Scans</p>
                         </div>
                         <div className="p-3 bg-surface-tertiary rounded-lg text-center">
                           <p className="text-xl font-mono text-warning">
                             {(() => {
-                              const totalMs = data.slow_queries.reduce((s, q) => s + q.total_time_ms, 0);
-                              return `${(totalMs / 60000).toFixed(0)}m`;
+                              const total = data.slow_queries.reduce((s, q) => s + (q.n_tup_ins ?? 0) + (q.n_tup_upd ?? 0) + (q.n_tup_del ?? 0), 0);
+                              return total > 1000 ? `${(total / 1000).toFixed(1)}K` : String(total);
                             })()}
                           </p>
-                          <p className="text-xs text-text-muted">Total Exec</p>
+                          <p className="text-xs text-text-muted">DML Ops</p>
                         </div>
                       </div>
 
@@ -480,8 +482,7 @@ function DatabaseContent() {
                     </div>
                   ) : (
                     <div className="text-center py-8 text-text-muted">
-                      <p>No query statistics available</p>
-                      <p className="text-xs mt-1">(pg_stat_statements may not be enabled)</p>
+                      <p>No table activity data available</p>
                     </div>
                   )}
                 </Card>
@@ -506,7 +507,7 @@ function DatabaseContent() {
                             <tr key={i} className="text-text-secondary">
                               <td className="py-2 font-mono text-xs">{table.table_name}</td>
                               <td className="py-2 text-right font-mono">
-                                {table.row_count?.toLocaleString() ?? '—'}
+                                {table.row_estimate?.toLocaleString() ?? '—'}
                               </td>
                               <td className="py-2 text-right text-text-muted">{table.total_size ?? '—'}</td>
                             </tr>
@@ -519,38 +520,39 @@ function DatabaseContent() {
                   )}
                 </Card>
 
-                {/* Slow Queries */}
-                <Card title="Slowest Queries">
+                {/* Hot Tables (high seq scan) */}
+                <Card title="Busiest Tables">
                   <div className="space-y-3">
                     {data?.slow_queries?.length ? (
-                      data.slow_queries.slice(0, 5).map((query, i: number) => (
-                        <div
-                          key={i}
-                          className="p-3 bg-surface-tertiary rounded-lg"
-                        >
-                          <div className="flex items-center justify-between mb-2">
-                            <span className={cn(
-                              "text-xs font-mono",
-                              query.avg_time_ms > 1000 ? 'text-error' :
-                              query.avg_time_ms > 100 ? 'text-warning' : 'text-text-muted'
-                            )}>
-                              avg {query.avg_time_ms?.toFixed(0)}ms
-                            </span>
-                            <span className="text-xs text-text-muted">
-                              {query.calls?.toLocaleString()} calls
-                            </span>
+                      data.slow_queries.slice(0, 8).map((tbl, i: number) => {
+                        const seqRatio = (tbl.seq_scan ?? 0) + (tbl.idx_scan ?? 0) > 0
+                          ? ((tbl.seq_scan ?? 0) / ((tbl.seq_scan ?? 0) + (tbl.idx_scan ?? 0))) * 100
+                          : 0;
+                        return (
+                          <div
+                            key={i}
+                            className="p-3 bg-surface-tertiary rounded-lg"
+                          >
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-sm font-mono text-text-primary">{tbl.table_name}</span>
+                              <span className={cn(
+                                "text-xs font-mono",
+                                seqRatio > 50 ? 'text-warning' : 'text-success'
+                              )}>
+                                {seqRatio.toFixed(0)}% seq
+                              </span>
+                            </div>
+                            <div className="flex gap-3 text-xs text-text-muted">
+                              <span>seq: {(tbl.seq_scan ?? 0).toLocaleString()}</span>
+                              <span>idx: {(tbl.idx_scan ?? 0).toLocaleString()}</span>
+                              <span>ins: {(tbl.n_tup_ins ?? 0).toLocaleString()}</span>
+                              <span>upd: {(tbl.n_tup_upd ?? 0).toLocaleString()}</span>
+                            </div>
                           </div>
-                          <p className="text-xs text-text-muted font-mono truncate">
-                            {query.query}
-                          </p>
-                        </div>
-                      ))
+                        );
+                      })
                     ) : (
-                      <p className="text-text-muted text-center py-8">
-                        No slow query data available
-                        <br />
-                        <span className="text-xs">(pg_stat_statements may not be enabled)</span>
-                      </p>
+                      <p className="text-text-muted text-center py-8">No table activity data</p>
                     )}
                   </div>
                 </Card>

@@ -1,0 +1,5263 @@
+{
+  "audit_timestamp": "2026-03-13T04:30:13.072907+00:00",
+  "front_door_url": "https://sym-api-fagzf6fdbdanbdb4.z03.azurefd.net",
+  "total_endpoints": 57,
+  "summary": {
+    "OK": 35,
+    "EMPTY": 18,
+    "SERVER_ERROR": 2,
+    "FORBIDDEN": 2
+  },
+  "results": [
+    {
+      "id": 1,
+      "method": "GET",
+      "path": "/debug/insights/pulse",
+      "page": "Home",
+      "http_code": 200,
+      "elapsed_s": 4.22,
+      "data_summary": "fields=['total_users', 'whitelisted_users', 'active_last_7d', 'active_last_30d', 'total_workspaces', 'total_organizations', 'jobs_last_24h'] | query=2772ms",
+      "error": null,
+      "response_body": {
+        "data": {
+          "total_users": 2,
+          "whitelisted_users": 1,
+          "active_last_7d": 2,
+          "active_last_30d": 2,
+          "total_workspaces": 1,
+          "total_organizations": 1,
+          "jobs_last_24h": 53
+        },
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 2772.103548000132,
+          "result_count": 1,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:28:37.537219+00:00",
+          "suggested_viz": "metric",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 2,
+      "method": "GET",
+      "path": "/debug/insights/top-workspaces?limit=5",
+      "page": "Home",
+      "http_code": 200,
+      "elapsed_s": 1.31,
+      "data_summary": "1 items",
+      "error": null,
+      "response_body": {
+        "data": [
+          {
+            "id": "22bdcb1a-6fe6-4a50-99d0-dc1cf69f8de7",
+            "name": "Integration Test User's Workspace",
+            "organization_name": "Test User's Workspace",
+            "job_count": 79,
+            "member_count": 79,
+            "last_activity": "2026-03-13T04:17:48.048035Z"
+          }
+        ],
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 6.167801999936273,
+          "result_count": 1,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:28:38.869440+00:00",
+          "suggested_viz": "table",
+          "columns": [
+            {
+              "key": "name",
+              "label": "Workspace",
+              "type": "string"
+            },
+            {
+              "key": "organization_name",
+              "label": "Organization",
+              "type": "string"
+            },
+            {
+              "key": "job_count",
+              "label": "Jobs",
+              "type": "number"
+            },
+            {
+              "key": "member_count",
+              "label": "Members",
+              "type": "number"
+            },
+            {
+              "key": "last_activity",
+              "label": "Last Activity",
+              "type": "date"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": 3,
+      "method": "GET",
+      "path": "/debug/insights/pipeline-health",
+      "page": "Home",
+      "http_code": 200,
+      "elapsed_s": 1.31,
+      "data_summary": "3 items",
+      "error": null,
+      "response_body": {
+        "data": [
+          {
+            "job_type": "export",
+            "total": 7,
+            "completed": 1,
+            "failed": 6,
+            "processing": 0,
+            "pending": 0,
+            "avg_duration_secs": "6634.86"
+          },
+          {
+            "job_type": "conversation",
+            "total": 45,
+            "completed": 39,
+            "failed": 3,
+            "processing": 0,
+            "pending": 3,
+            "avg_duration_secs": "11179.41"
+          },
+          {
+            "job_type": "stream_turn",
+            "total": 1,
+            "completed": 1,
+            "failed": 0,
+            "processing": 0,
+            "pending": 0,
+            "avg_duration_secs": "112.61"
+          }
+        ],
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 5.791901999828042,
+          "result_count": 3,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:28:40.105416+00:00",
+          "suggested_viz": "table",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 4,
+      "method": "GET",
+      "path": "/debug/insights/cost-breakdown?days=7",
+      "page": "Home",
+      "http_code": 200,
+      "elapsed_s": 3.51,
+      "data_summary": "20 items",
+      "error": null,
+      "response_body": {
+        "data": [
+          {
+            "service": "Azure Container Apps",
+            "cost": 122.314741044011,
+            "currency": "Number"
+          },
+          {
+            "service": "Azure Database for PostgreSQL",
+            "cost": 87.4766886021505,
+            "currency": "Number"
+          },
+          {
+            "service": "Azure Front Door Service",
+            "cost": 39.9019317322955,
+            "currency": "Number"
+          },
+          {
+            "service": "Container Instances",
+            "cost": 28.6826727154382,
+            "currency": "Number"
+          },
+          {
+            "service": "Virtual Machines",
+            "cost": 26.6676394148,
+            "currency": "Number"
+          },
+          {
+            "service": "Log Analytics",
+            "cost": 18.13718738304,
+            "currency": "Number"
+          },
+          {
+            "service": "Key Vault",
+            "cost": 15.149808,
+            "currency": "Number"
+          },
+          {
+            "service": "Foundry Models",
+            "cost": 14.870575626,
+            "currency": "Number"
+          },
+          {
+            "service": "Storage",
+            "cost": 8.4983787848,
+            "currency": "Number"
+          },
+          {
+            "service": "NAT Gateway",
+            "cost": 7.20995132357608,
+            "currency": "Number"
+          },
+          {
+            "service": "Virtual Network",
+            "cost": 5.55068221704256,
+            "currency": "Number"
+          },
+          {
+            "service": "Azure Monitor",
+            "cost": 3.5994623655914,
+            "currency": "Number"
+          },
+          {
+            "service": "Backup",
+            "cost": 3.1007012456399,
+            "currency": "Number"
+          },
+          {
+            "service": "Azure App Service",
+            "cost": 3.006,
+            "currency": "Number"
+          },
+          {
+            "service": "Load Balancer",
+            "cost": 2.12816158627253,
+            "currency": "Number"
+          },
+          {
+            "service": "Azure DNS",
+            "cost": 0.327986758721625,
+            "currency": "Number"
+          },
+          {
+            "service": "Azure Cosmos DB",
+            "cost": 0.000295827613652383,
+            "currency": "Number"
+          },
+          {
+            "service": "Bandwidth",
+            "cost": 3.01689468324184e-05,
+            "currency": "Number"
+          },
+          {
+            "service": "Microsoft Entra",
+            "cost": 0.0,
+            "currency": "Number"
+          },
+          {
+            "service": "Service Bus",
+            "cost": 0.0,
+            "currency": "Number"
+          }
+        ],
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 2217.0238640001116,
+          "result_count": 20,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:28:43.707819+00:00",
+          "suggested_viz": "bar-chart",
+          "columns": [
+            {
+              "key": "service",
+              "label": "Service",
+              "type": "string"
+            },
+            {
+              "key": "cost",
+              "label": "Cost",
+              "type": "number"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": 5,
+      "method": "GET",
+      "path": "/debug/insights/growth?days=7",
+      "page": "Insights",
+      "http_code": 200,
+      "elapsed_s": 1.28,
+      "data_summary": "2 items",
+      "error": null,
+      "response_body": {
+        "data": [
+          {
+            "date": "2026-03-10",
+            "new_users": 1
+          },
+          {
+            "date": "2026-03-12",
+            "new_users": 1
+          }
+        ],
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 5.535602000009021,
+          "result_count": 2,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:28:44.947575+00:00",
+          "suggested_viz": "area-chart",
+          "columns": [
+            {
+              "key": "date",
+              "label": "Date",
+              "type": "date"
+            },
+            {
+              "key": "new_users",
+              "label": "New Users",
+              "type": "number"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": 6,
+      "method": "GET",
+      "path": "/debug/insights/engagement",
+      "page": "Insights",
+      "http_code": 200,
+      "elapsed_s": 1.34,
+      "data_summary": "fields=['dau', 'wau', 'mau', 'total'] | query=5ms",
+      "error": null,
+      "response_body": {
+        "data": {
+          "dau": 2,
+          "wau": 2,
+          "mau": 2,
+          "total": 2
+        },
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 4.981701999895449,
+          "result_count": 1,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:28:46.249155+00:00",
+          "suggested_viz": "metric",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 7,
+      "method": "GET",
+      "path": "/debug/insights/feature-adoption",
+      "page": "Insights",
+      "http_code": 200,
+      "elapsed_s": 1.22,
+      "data_summary": "fields=['total_workspaces', 'conversation_active_30d'] | empty=['auto_connect_enabled', 'knowledge_active_30d'] | query=6ms",
+      "error": null,
+      "response_body": {
+        "data": {
+          "total_workspaces": 1,
+          "auto_connect_enabled": 0,
+          "knowledge_active_30d": 0,
+          "conversation_active_30d": 1
+        },
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 5.646102000127939,
+          "result_count": 1,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:28:47.609196+00:00",
+          "suggested_viz": "bar-chart",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 8,
+      "method": "GET",
+      "path": "/debug/insights/retention?weeks=4",
+      "page": "Insights",
+      "http_code": 200,
+      "elapsed_s": 1.21,
+      "data_summary": "1 items",
+      "error": null,
+      "response_body": {
+        "data": [
+          {
+            "cohort_week": "2026-03-09",
+            "cohort_size": 2,
+            "retained": 2
+          }
+        ],
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 5.765901999893686,
+          "result_count": 1,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:28:48.828086+00:00",
+          "suggested_viz": "heatmap",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 9,
+      "method": "GET",
+      "path": "/debug/insights/unit-economics",
+      "page": "Insights",
+      "http_code": 200,
+      "elapsed_s": 2.71,
+      "data_summary": "fields=['total_cost_30d', 'cost_per_user', 'cost_per_workspace', 'total_users', 'total_workspaces'] | query=1312ms",
+      "error": null,
+      "response_body": {
+        "data": {
+          "total_cost_30d": 1369.58,
+          "cost_per_user": 1369.58,
+          "cost_per_workspace": 1369.58,
+          "total_users": 1,
+          "total_workspaces": 1
+        },
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 1312.042349999956,
+          "result_count": 1,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:28:51.497157+00:00",
+          "suggested_viz": "metric",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 10,
+      "method": "GET",
+      "path": "/debug/errors/timeline?hours=24",
+      "page": "Errors",
+      "http_code": 200,
+      "elapsed_s": 1.22,
+      "data_summary": "0 items",
+      "error": null,
+      "response_body": {
+        "data": [],
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 0.010100000054080738,
+          "result_count": 0,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:28:52.796151+00:00",
+          "suggested_viz": "area-chart",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 11,
+      "method": "GET",
+      "path": "/debug/errors/clusters?hours=24",
+      "page": "Errors",
+      "http_code": 200,
+      "elapsed_s": 1.22,
+      "data_summary": "0 items",
+      "error": null,
+      "response_body": {
+        "data": [],
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 0.010299999985363684,
+          "result_count": 0,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:28:54.027536+00:00",
+          "suggested_viz": "table",
+          "columns": [
+            {
+              "key": "type",
+              "label": "Type",
+              "type": "string"
+            },
+            {
+              "key": "outerMessage",
+              "label": "Message",
+              "type": "string"
+            },
+            {
+              "key": "cloud_RoleName",
+              "label": "Service",
+              "type": "string"
+            },
+            {
+              "key": "count_",
+              "label": "Count",
+              "type": "number"
+            },
+            {
+              "key": "latest",
+              "label": "Latest",
+              "type": "date"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": 12,
+      "method": "GET",
+      "path": "/debug/errors/failed-jobs?hours=24",
+      "page": "Errors",
+      "http_code": 200,
+      "elapsed_s": 1.19,
+      "data_summary": "0 items",
+      "error": null,
+      "response_body": {
+        "data": [],
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 0.11029999996026163,
+          "result_count": 0,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:28:55.239222+00:00",
+          "suggested_viz": "table",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 13,
+      "method": "GET",
+      "path": "/debug/health/score",
+      "page": "Data Health",
+      "http_code": 200,
+      "elapsed_s": 1.69,
+      "data_summary": "fields=['score', 'status', 'checks'] | query=395ms",
+      "error": null,
+      "response_body": {
+        "data": {
+          "score": 100,
+          "status": "healthy",
+          "checks": {
+            "postgresql": {
+              "healthy": true,
+              "message": "Connected"
+            },
+            "neo4j": {
+              "healthy": true,
+              "message": "Connected"
+            },
+            "storage": {
+              "healthy": true,
+              "message": "Connected"
+            }
+          }
+        },
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 395.1887469997928,
+          "result_count": 1,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:28:56.941944+00:00",
+          "suggested_viz": "metric",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 14,
+      "method": "GET",
+      "path": "/debug/health/consistency",
+      "page": "Data Health",
+      "http_code": 200,
+      "elapsed_s": 1.26,
+      "data_summary": "fields=['consistent', 'checks_run'] | empty=['issues'] | query=14ms",
+      "error": null,
+      "response_body": {
+        "data": {
+          "consistent": true,
+          "issues": [],
+          "checks_run": 3
+        },
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 14.092204999997193,
+          "result_count": 1,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:28:58.199885+00:00",
+          "suggested_viz": "table",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 15,
+      "method": "GET",
+      "path": "/debug/health/orphans",
+      "page": "Data Health",
+      "http_code": 200,
+      "elapsed_s": 1.31,
+      "data_summary": "fields=[] | empty=['orphaned_workspace_members', 'orphaned_jobs'] | query=10ms",
+      "error": null,
+      "response_body": {
+        "data": {
+          "orphaned_workspace_members": [],
+          "orphaned_jobs": []
+        },
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 9.689902999980404,
+          "result_count": 1,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:28:59.476226+00:00",
+          "suggested_viz": "table",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 16,
+      "method": "GET",
+      "path": "/debug/infra/container-apps",
+      "page": "Infrastructure",
+      "http_code": 200,
+      "elapsed_s": 2.23,
+      "data_summary": "5 items",
+      "error": null,
+      "response_body": {
+        "data": [
+          {
+            "name": "ca-sym-api-prod",
+            "location": "Central US",
+            "provisioning_state": "Succeeded",
+            "running_status": null,
+            "latest_revision": "ca-sym-api-prod--deploy-64"
+          },
+          {
+            "name": "ca-sym-retrieval-prod",
+            "location": "Central US",
+            "provisioning_state": "Succeeded",
+            "running_status": null,
+            "latest_revision": "ca-sym-retrieval-prod--deploy-64"
+          },
+          {
+            "name": "ca-sym-processor-prod",
+            "location": "Central US",
+            "provisioning_state": "Succeeded",
+            "running_status": null,
+            "latest_revision": "ca-sym-processor-prod--deploy-64"
+          },
+          {
+            "name": "ca-sym-router-prod",
+            "location": "Central US",
+            "provisioning_state": "Succeeded",
+            "running_status": null,
+            "latest_revision": "ca-sym-router-prod--deploy-64"
+          },
+          {
+            "name": "ca-sym-debugger-prod",
+            "location": "Central US",
+            "provisioning_state": "Succeeded",
+            "running_status": null,
+            "latest_revision": "ca-sym-debugger-prod--deploy-64"
+          }
+        ],
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 824.5659269998669,
+          "result_count": 5,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:29:01.789009+00:00",
+          "suggested_viz": "table",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 17,
+      "method": "GET",
+      "path": "/debug/infra/postgresql",
+      "page": "Infrastructure",
+      "http_code": 200,
+      "elapsed_s": 1.21,
+      "data_summary": "fields=['health', 'connections', 'tables'] | query=19ms",
+      "error": null,
+      "response_body": {
+        "data": {
+          "health": {
+            "healthy": true,
+            "message": "Connected"
+          },
+          "connections": {
+            "total_connections": 6,
+            "active": 1,
+            "idle": 0,
+            "idle_in_transaction": 0
+          },
+          "tables": [
+            {
+              "table_name": "public.processing_jobs",
+              "total_size": "160 kB",
+              "size_bytes": 163840,
+              "row_estimate": 80
+            },
+            {
+              "table_name": "public.external_conversations",
+              "total_size": "112 kB",
+              "size_bytes": 114688,
+              "row_estimate": 62
+            },
+            {
+              "table_name": "public.chat_messages",
+              "total_size": "80 kB",
+              "size_bytes": 81920,
+              "row_estimate": 27
+            },
+            {
+              "table_name": "public.chat_conversations",
+              "total_size": "64 kB",
+              "size_bytes": 65536,
+              "row_estimate": 14
+            },
+            {
+              "table_name": "public.users",
+              "total_size": "64 kB",
+              "size_bytes": 65536,
+              "row_estimate": 2
+            },
+            {
+              "table_name": "public.workspace_settings",
+              "total_size": "56 kB",
+              "size_bytes": 57344,
+              "row_estimate": 1
+            },
+            {
+              "table_name": "public.workspace_members",
+              "total_size": "40 kB",
+              "size_bytes": 40960,
+              "row_estimate": 1
+            },
+            {
+              "table_name": "public.workspace_invitations",
+              "total_size": "40 kB",
+              "size_bytes": 40960,
+              "row_estimate": 0
+            },
+            {
+              "table_name": "public.chat_connection_status",
+              "total_size": "40 kB",
+              "size_bytes": 40960,
+              "row_estimate": 0
+            },
+            {
+              "table_name": "public.organization_encryption_keys",
+              "total_size": "32 kB",
+              "size_bytes": 32768,
+              "row_estimate": 1
+            },
+            {
+              "table_name": "public.workspaces",
+              "total_size": "32 kB",
+              "size_bytes": 32768,
+              "row_estimate": 1
+            },
+            {
+              "table_name": "public._data_migrations",
+              "total_size": "32 kB",
+              "size_bytes": 32768,
+              "row_estimate": 1
+            },
+            {
+              "table_name": "public.organizations",
+              "total_size": "32 kB",
+              "size_bytes": 32768,
+              "row_estimate": 1
+            },
+            {
+              "table_name": "public.proactive_context_sessions",
+              "total_size": "32 kB",
+              "size_bytes": 32768,
+              "row_estimate": 0
+            },
+            {
+              "table_name": "public.user_concerns",
+              "total_size": "24 kB",
+              "size_bytes": 24576,
+              "row_estimate": 0
+            },
+            {
+              "table_name": "public.proactive_context_sections",
+              "total_size": "24 kB",
+              "size_bytes": 24576,
+              "row_estimate": 0
+            },
+            {
+              "table_name": "public.user_settings",
+              "total_size": "24 kB",
+              "size_bytes": 24576,
+              "row_estimate": 0
+            },
+            {
+              "table_name": "public.user_entities",
+              "total_size": "24 kB",
+              "size_bytes": 24576,
+              "row_estimate": 0
+            },
+            {
+              "table_name": "public.knowledge_doc_generations",
+              "total_size": "24 kB",
+              "size_bytes": 24576,
+              "row_estimate": 0
+            },
+            {
+              "table_name": "public.alembic_version",
+              "total_size": "24 kB",
+              "size_bytes": 24576,
+              "row_estimate": 1
+            },
+            {
+              "table_name": "public.knowledge_doc_sections",
+              "total_size": "24 kB",
+              "size_bytes": 24576,
+              "row_estimate": 0
+            }
+          ]
+        },
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 18.843407000076695,
+          "result_count": 1,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:29:03.013634+00:00",
+          "suggested_viz": "table",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 18,
+      "method": "GET",
+      "path": "/debug/infra/neo4j",
+      "page": "Infrastructure",
+      "http_code": 500,
+      "elapsed_s": 1.8,
+      "data_summary": "Non-JSON: Internal Server Error",
+      "error": "Non-JSON response",
+      "response_body": null
+    },
+    {
+      "id": 19,
+      "method": "GET",
+      "path": "/debug/infra/service-bus",
+      "page": "Infrastructure",
+      "http_code": 200,
+      "elapsed_s": 2.02,
+      "data_summary": "fields=['queues', 'metrics'] | empty=['throughput_timeline'] | query=439ms",
+      "error": null,
+      "response_body": {
+        "data": {
+          "queues": [
+            {
+              "name": "batch-jobs",
+              "status": "Active",
+              "max_size_mb": 1024,
+              "requires_session": true
+            },
+            {
+              "name": "conversation-jobs",
+              "status": "Active",
+              "max_size_mb": 1024,
+              "requires_session": true
+            },
+            {
+              "name": "knowledge-jobs",
+              "status": "Active",
+              "max_size_mb": 1024,
+              "requires_session": true
+            },
+            {
+              "name": "live-ingestion-jobs",
+              "status": "Active",
+              "max_size_mb": 1024,
+              "requires_session": true
+            }
+          ],
+          "metrics": [
+            {
+              "name": "batch-jobs",
+              "active_message_count": 0,
+              "dead_letter_message_count": 0,
+              "scheduled_message_count": 0,
+              "transfer_message_count": 0,
+              "transfer_dead_letter_message_count": 0,
+              "total_message_count": 0,
+              "size_in_bytes": 0,
+              "throughput": {
+                "name": "batch-jobs",
+                "active_messages": 0,
+                "dead_letter_count": 0,
+                "size_bytes": 0,
+                "created_at": "2026-02-09 21:10:09.737472+00:00",
+                "updated_at": "2026-02-19 13:14:46.543395+00:00"
+              }
+            },
+            {
+              "name": "conversation-jobs",
+              "active_message_count": 0,
+              "dead_letter_message_count": 0,
+              "scheduled_message_count": 0,
+              "transfer_message_count": 0,
+              "transfer_dead_letter_message_count": 0,
+              "total_message_count": 0,
+              "size_in_bytes": 0,
+              "throughput": {
+                "name": "conversation-jobs",
+                "active_messages": 0,
+                "dead_letter_count": 0,
+                "size_bytes": 0,
+                "created_at": "2026-02-19 23:51:05.610618+00:00",
+                "updated_at": "2026-02-19 23:51:05.610618+00:00"
+              }
+            },
+            {
+              "name": "knowledge-jobs",
+              "active_message_count": 0,
+              "dead_letter_message_count": 0,
+              "scheduled_message_count": 0,
+              "transfer_message_count": 0,
+              "transfer_dead_letter_message_count": 0,
+              "total_message_count": 0,
+              "size_in_bytes": 0,
+              "throughput": {
+                "name": "knowledge-jobs",
+                "active_messages": 0,
+                "dead_letter_count": 0,
+                "size_bytes": 0,
+                "created_at": "2026-02-25 12:50:57.203283+00:00",
+                "updated_at": "2026-02-25 12:50:57.203283+00:00"
+              }
+            },
+            {
+              "name": "live-ingestion-jobs",
+              "active_message_count": 6,
+              "dead_letter_message_count": 0,
+              "scheduled_message_count": 0,
+              "transfer_message_count": 0,
+              "transfer_dead_letter_message_count": 0,
+              "total_message_count": 6,
+              "size_in_bytes": 6138,
+              "throughput": {
+                "name": "live-ingestion-jobs",
+                "active_messages": 6,
+                "dead_letter_count": 0,
+                "size_bytes": 6138,
+                "created_at": "2026-02-27 10:51:21.497186+00:00",
+                "updated_at": "2026-03-13 02:39:09.863713+00:00"
+              }
+            }
+          ],
+          "throughput_timeline": []
+        },
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 438.5599849999835,
+          "result_count": 4,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:29:06.883980+00:00",
+          "suggested_viz": "table",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 20,
+      "method": "GET",
+      "path": "/debug/infra/storage",
+      "page": "Infrastructure",
+      "http_code": 200,
+      "elapsed_s": 4.78,
+      "data_summary": "fields=['containers', 'total_size'] | query=3542ms",
+      "error": null,
+      "response_body": {
+        "data": {
+          "containers": [
+            {
+              "name": "blob-storage",
+              "last_modified": "2026-03-12 09:31:53+00:00"
+            },
+            {
+              "name": "symmetry-blob-storage",
+              "last_modified": "2026-02-10 19:23:49+00:00"
+            }
+          ],
+          "total_size": {
+            "total_bytes": 998038644,
+            "blob_count": 5625
+          }
+        },
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 3541.6348479998305,
+          "result_count": 1,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:29:11.664647+00:00",
+          "suggested_viz": "table",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 21,
+      "method": "GET",
+      "path": "/debug/scale/services",
+      "page": "Scalability",
+      "http_code": 200,
+      "elapsed_s": 1.7,
+      "data_summary": "5 items",
+      "error": null,
+      "response_body": {
+        "data": [
+          {
+            "name": "ca-sym-api-prod",
+            "location": "Central US",
+            "provisioning_state": "Succeeded",
+            "running_status": null,
+            "latest_revision": "ca-sym-api-prod--deploy-64"
+          },
+          {
+            "name": "ca-sym-retrieval-prod",
+            "location": "Central US",
+            "provisioning_state": "Succeeded",
+            "running_status": null,
+            "latest_revision": "ca-sym-retrieval-prod--deploy-64"
+          },
+          {
+            "name": "ca-sym-processor-prod",
+            "location": "Central US",
+            "provisioning_state": "Succeeded",
+            "running_status": null,
+            "latest_revision": "ca-sym-processor-prod--deploy-64"
+          },
+          {
+            "name": "ca-sym-router-prod",
+            "location": "Central US",
+            "provisioning_state": "Succeeded",
+            "running_status": null,
+            "latest_revision": "ca-sym-router-prod--deploy-64"
+          },
+          {
+            "name": "ca-sym-debugger-prod",
+            "location": "Central US",
+            "provisioning_state": "Succeeded",
+            "running_status": null,
+            "latest_revision": "ca-sym-debugger-prod--deploy-64"
+          }
+        ],
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 479.9043170000914,
+          "result_count": 5,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:29:13.376167+00:00",
+          "suggested_viz": "table",
+          "columns": [
+            {
+              "key": "name",
+              "label": "Service",
+              "type": "string"
+            },
+            {
+              "key": "provisioning_state",
+              "label": "State",
+              "type": "badge"
+            },
+            {
+              "key": "latest_revision",
+              "label": "Revision",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": 22,
+      "method": "GET",
+      "path": "/debug/scale/quotas",
+      "page": "Scalability",
+      "http_code": 200,
+      "elapsed_s": 1.33,
+      "data_summary": "fields=['connections', 'total_db_size_bytes', 'table_count'] | query=12ms",
+      "error": null,
+      "response_body": {
+        "data": {
+          "connections": {
+            "total_connections": 6,
+            "active": 1,
+            "idle": 0,
+            "idle_in_transaction": 0
+          },
+          "total_db_size_bytes": 1007616,
+          "table_count": 21
+        },
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 11.61290499999268,
+          "result_count": 1,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:29:14.748820+00:00",
+          "suggested_viz": "metric",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 23,
+      "method": "GET",
+      "path": "/debug/scale/bottlenecks?hours=24",
+      "page": "Scalability",
+      "http_code": 200,
+      "elapsed_s": 1.19,
+      "data_summary": "0 items",
+      "error": null,
+      "response_body": {
+        "data": [],
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 0.0050999999530176865,
+          "result_count": 0,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:29:15.953762+00:00",
+          "suggested_viz": "table",
+          "columns": [
+            {
+              "key": "name",
+              "label": "Endpoint",
+              "type": "string"
+            },
+            {
+              "key": "cloud_RoleName",
+              "label": "Service",
+              "type": "string"
+            },
+            {
+              "key": "p95_duration",
+              "label": "P95 (ms)",
+              "type": "number"
+            },
+            {
+              "key": "p99_duration",
+              "label": "P99 (ms)",
+              "type": "number"
+            },
+            {
+              "key": "count_",
+              "label": "Count",
+              "type": "number"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": 24,
+      "method": "GET",
+      "path": "/debug/scale/database",
+      "page": "Scalability",
+      "http_code": 200,
+      "elapsed_s": 1.3,
+      "data_summary": "fields=['table_sizes', 'connections'] | empty=['slow_queries'] | query=15ms",
+      "error": null,
+      "response_body": {
+        "data": {
+          "table_sizes": [
+            {
+              "table_name": "public.processing_jobs",
+              "total_size": "160 kB",
+              "size_bytes": 163840,
+              "row_estimate": 80
+            },
+            {
+              "table_name": "public.external_conversations",
+              "total_size": "112 kB",
+              "size_bytes": 114688,
+              "row_estimate": 62
+            },
+            {
+              "table_name": "public.chat_messages",
+              "total_size": "80 kB",
+              "size_bytes": 81920,
+              "row_estimate": 27
+            },
+            {
+              "table_name": "public.chat_conversations",
+              "total_size": "64 kB",
+              "size_bytes": 65536,
+              "row_estimate": 14
+            },
+            {
+              "table_name": "public.users",
+              "total_size": "64 kB",
+              "size_bytes": 65536,
+              "row_estimate": 2
+            },
+            {
+              "table_name": "public.workspace_settings",
+              "total_size": "56 kB",
+              "size_bytes": 57344,
+              "row_estimate": 1
+            },
+            {
+              "table_name": "public.workspace_members",
+              "total_size": "40 kB",
+              "size_bytes": 40960,
+              "row_estimate": 1
+            },
+            {
+              "table_name": "public.workspace_invitations",
+              "total_size": "40 kB",
+              "size_bytes": 40960,
+              "row_estimate": 0
+            },
+            {
+              "table_name": "public.chat_connection_status",
+              "total_size": "40 kB",
+              "size_bytes": 40960,
+              "row_estimate": 0
+            },
+            {
+              "table_name": "public.organization_encryption_keys",
+              "total_size": "32 kB",
+              "size_bytes": 32768,
+              "row_estimate": 1
+            },
+            {
+              "table_name": "public.workspaces",
+              "total_size": "32 kB",
+              "size_bytes": 32768,
+              "row_estimate": 1
+            },
+            {
+              "table_name": "public._data_migrations",
+              "total_size": "32 kB",
+              "size_bytes": 32768,
+              "row_estimate": 1
+            },
+            {
+              "table_name": "public.organizations",
+              "total_size": "32 kB",
+              "size_bytes": 32768,
+              "row_estimate": 1
+            },
+            {
+              "table_name": "public.proactive_context_sessions",
+              "total_size": "32 kB",
+              "size_bytes": 32768,
+              "row_estimate": 0
+            },
+            {
+              "table_name": "public.user_concerns",
+              "total_size": "24 kB",
+              "size_bytes": 24576,
+              "row_estimate": 0
+            },
+            {
+              "table_name": "public.proactive_context_sections",
+              "total_size": "24 kB",
+              "size_bytes": 24576,
+              "row_estimate": 0
+            },
+            {
+              "table_name": "public.user_settings",
+              "total_size": "24 kB",
+              "size_bytes": 24576,
+              "row_estimate": 0
+            },
+            {
+              "table_name": "public.user_entities",
+              "total_size": "24 kB",
+              "size_bytes": 24576,
+              "row_estimate": 0
+            },
+            {
+              "table_name": "public.knowledge_doc_generations",
+              "total_size": "24 kB",
+              "size_bytes": 24576,
+              "row_estimate": 0
+            },
+            {
+              "table_name": "public.alembic_version",
+              "total_size": "24 kB",
+              "size_bytes": 24576,
+              "row_estimate": 1
+            },
+            {
+              "table_name": "public.knowledge_doc_sections",
+              "total_size": "24 kB",
+              "size_bytes": 24576,
+              "row_estimate": 0
+            }
+          ],
+          "connections": {
+            "total_connections": 6,
+            "active": 1,
+            "idle": 0,
+            "idle_in_transaction": 0
+          },
+          "slow_queries": []
+        },
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 15.373508000038782,
+          "result_count": 1,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:29:17.251217+00:00",
+          "suggested_viz": "table",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 25,
+      "method": "GET",
+      "path": "/debug/workspaces?page=1&page_size=5",
+      "page": "Workspaces",
+      "http_code": 200,
+      "elapsed_s": 1.21,
+      "data_summary": "fields=['items', 'total', 'page', 'page_size'] | empty=['has_more'] | query=7ms",
+      "error": null,
+      "response_body": {
+        "data": {
+          "items": [
+            {
+              "id": "22bdcb1a-6fe6-4a50-99d0-dc1cf69f8de7",
+              "name": "Integration Test User's Workspace",
+              "organization_id": "ed25cfaa-85ad-40d6-9ba2-8682491e8067",
+              "created_at": "2026-03-10T19:49:50.295457Z",
+              "goal": null,
+              "member_count": 1
+            }
+          ],
+          "total": 1,
+          "page": 1,
+          "page_size": 5,
+          "has_more": false
+        },
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 6.723903000192877,
+          "result_count": 1,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:29:18.466808+00:00",
+          "suggested_viz": "table",
+          "columns": [
+            {
+              "key": "name",
+              "label": "Name",
+              "type": "string"
+            },
+            {
+              "key": "member_count",
+              "label": "Members",
+              "type": "number"
+            },
+            {
+              "key": "created_at",
+              "label": "Created",
+              "type": "date"
+            },
+            {
+              "key": "goal",
+              "label": "Goal",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": 26,
+      "method": "GET",
+      "path": "/debug/admin/whitelist",
+      "page": "Admin",
+      "http_code": 200,
+      "elapsed_s": 1.44,
+      "data_summary": "1 items",
+      "error": null,
+      "response_body": {
+        "data": [
+          {
+            "id": "b0314ebd-df55-438d-8c6d-25a9da49996a",
+            "email": "integration-test@symmetryciam.onmicrosoft.com",
+            "name": "Integration Test User",
+            "created_at": "2026-03-10T19:49:49.436411Z",
+            "last_login_at": "2026-03-13T04:28:43.625215Z"
+          }
+        ],
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 5.082701999981509,
+          "result_count": 1,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:29:19.926335+00:00",
+          "suggested_viz": "table",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 27,
+      "method": "POST",
+      "path": "/debug/logs/query",
+      "page": "Log Explorer",
+      "http_code": 200,
+      "elapsed_s": 1.19,
+      "data_summary": "0 items",
+      "error": null,
+      "response_body": {
+        "data": [],
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 0.013099999932819628,
+          "result_count": 0,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:29:21.162084+00:00",
+          "suggested_viz": "table",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 28,
+      "method": "POST",
+      "path": "/debug/ai/chat",
+      "page": "AI Chat",
+      "http_code": 200,
+      "elapsed_s": 6.13,
+      "data_summary": "fields=['message', 'ui', 'tools_called', 'model', 'rounds'] | query=4923ms",
+      "error": null,
+      "response_body": {
+        "data": {
+          "message": "The current system status shows 2 total users with 1 whitelisted user. Both users have been active in the last 7 and 30 days. There is 1 workspace and 1 organization in the system. In the last 24 hours, 54 jobs have been processed.",
+          "ui": [
+            {
+              "type": "stat_grid",
+              "stats": [
+                {
+                  "label": "Total Users",
+                  "value": 2
+                },
+                {
+                  "label": "Whitelisted Users",
+                  "value": 1
+                },
+                {
+                  "label": "Active Users (7d)",
+                  "value": 2
+                },
+                {
+                  "label": "Active Users (30d)",
+                  "value": 2
+                },
+                {
+                  "label": "Total Workspaces",
+                  "value": 1
+                },
+                {
+                  "label": "Total Organizations",
+                  "value": 1
+                },
+                {
+                  "label": "Jobs Processed (24h)",
+                  "value": 54
+                }
+              ]
+            }
+          ],
+          "tools_called": [
+            {
+              "name": "get_business_pulse",
+              "arguments": {},
+              "duration_ms": 32,
+              "success": true
+            }
+          ],
+          "model": "glm-4.7",
+          "rounds": 2
+        },
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 4923.410792000141,
+          "result_count": 1,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:29:27.311705+00:00",
+          "suggested_viz": "table",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 29,
+      "method": "GET",
+      "path": "/debug/logs/saved-queries",
+      "page": "Log Explorer",
+      "http_code": 200,
+      "elapsed_s": 1.27,
+      "data_summary": "0 items",
+      "error": null,
+      "response_body": {
+        "data": [],
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 0.00010000007932831068,
+          "result_count": 0,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:29:28.602559+00:00",
+          "suggested_viz": "table",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 30,
+      "method": "GET",
+      "path": "/debug/infra/costs?days=7",
+      "page": "Infra Costs",
+      "http_code": 200,
+      "elapsed_s": 5.36,
+      "data_summary": "fields=['daily', 'breakdown'] | empty=['resource_costs', 'forecast'] | query=4168ms",
+      "error": null,
+      "response_body": {
+        "data": {
+          "daily": [
+            {
+              "cost": 49.4144318554901,
+              "date": "20260306"
+            },
+            {
+              "cost": 49.6685718141103,
+              "date": "20260307"
+            },
+            {
+              "cost": 50.7542296093244,
+              "date": "20260308"
+            },
+            {
+              "cost": 45.3423531671692,
+              "date": "20260309"
+            },
+            {
+              "cost": 71.4038108420141,
+              "date": "20260310"
+            },
+            {
+              "cost": 58.1563613786518,
+              "date": "20260311"
+            },
+            {
+              "cost": 61.2684467423048,
+              "date": "20260312"
+            },
+            {
+              "cost": 0.614689386875278,
+              "date": "20260313"
+            }
+          ],
+          "breakdown": [
+            {
+              "service": "Azure Container Apps",
+              "cost": 122.314741044011,
+              "currency": "Number"
+            },
+            {
+              "service": "Azure Database for PostgreSQL",
+              "cost": 87.4766886021505,
+              "currency": "Number"
+            },
+            {
+              "service": "Azure Front Door Service",
+              "cost": 39.9019317322955,
+              "currency": "Number"
+            },
+            {
+              "service": "Container Instances",
+              "cost": 28.6826727154382,
+              "currency": "Number"
+            },
+            {
+              "service": "Virtual Machines",
+              "cost": 26.6676394148,
+              "currency": "Number"
+            },
+            {
+              "service": "Log Analytics",
+              "cost": 18.13718738304,
+              "currency": "Number"
+            },
+            {
+              "service": "Key Vault",
+              "cost": 15.149808,
+              "currency": "Number"
+            },
+            {
+              "service": "Foundry Models",
+              "cost": 14.870575626,
+              "currency": "Number"
+            },
+            {
+              "service": "Storage",
+              "cost": 8.4983787848,
+              "currency": "Number"
+            },
+            {
+              "service": "NAT Gateway",
+              "cost": 7.20995132357608,
+              "currency": "Number"
+            },
+            {
+              "service": "Virtual Network",
+              "cost": 5.55068221704256,
+              "currency": "Number"
+            },
+            {
+              "service": "Azure Monitor",
+              "cost": 3.5994623655914,
+              "currency": "Number"
+            },
+            {
+              "service": "Backup",
+              "cost": 3.1007012456399,
+              "currency": "Number"
+            },
+            {
+              "service": "Azure App Service",
+              "cost": 3.006,
+              "currency": "Number"
+            },
+            {
+              "service": "Load Balancer",
+              "cost": 2.12816158627253,
+              "currency": "Number"
+            },
+            {
+              "service": "Azure DNS",
+              "cost": 0.327986758721625,
+              "currency": "Number"
+            },
+            {
+              "service": "Azure Cosmos DB",
+              "cost": 0.000295827613652383,
+              "currency": "Number"
+            },
+            {
+              "service": "Bandwidth",
+              "cost": 3.01689468324184e-05,
+              "currency": "Number"
+            },
+            {
+              "service": "Microsoft Entra",
+              "cost": 0.0,
+              "currency": "Number"
+            },
+            {
+              "service": "Service Bus",
+              "cost": 0.0,
+              "currency": "Number"
+            }
+          ],
+          "resource_costs": [],
+          "forecast": {}
+        },
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 4168.475339999986,
+          "result_count": 1,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:29:33.970594+00:00",
+          "suggested_viz": "area-chart",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 31,
+      "method": "GET",
+      "path": "/debug/infra/openai?hours=24",
+      "page": "Infrastructure",
+      "http_code": 200,
+      "elapsed_s": 1.19,
+      "data_summary": "0 items",
+      "error": null,
+      "response_body": {
+        "data": [],
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 0.004600000011123484,
+          "result_count": 0,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:29:35.203664+00:00",
+          "suggested_viz": "area-chart",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 32,
+      "method": "GET",
+      "path": "/debug/infra/key-vault?hours=24",
+      "page": "Infrastructure",
+      "http_code": 200,
+      "elapsed_s": 1.2,
+      "data_summary": "0 items",
+      "error": null,
+      "response_body": {
+        "data": [],
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 0.005000000101063051,
+          "result_count": 0,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:29:36.379521+00:00",
+          "suggested_viz": "table",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 33,
+      "method": "GET",
+      "path": "/debug/infra/front-door?hours=24",
+      "page": "Infrastructure",
+      "http_code": 200,
+      "elapsed_s": 1.21,
+      "data_summary": "0 items",
+      "error": null,
+      "response_body": {
+        "data": [],
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 0.004099999841855606,
+          "result_count": 0,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:29:37.641555+00:00",
+          "suggested_viz": "area-chart",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 34,
+      "method": "GET",
+      "path": "/debug/infra/vnet",
+      "page": "Infrastructure",
+      "http_code": 200,
+      "elapsed_s": 1.23,
+      "data_summary": "0 items",
+      "error": null,
+      "response_body": {
+        "data": [],
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 0.0016000001323845936,
+          "result_count": 0,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:29:38.885258+00:00",
+          "suggested_viz": "table",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 35,
+      "method": "GET",
+      "path": "/debug/infra/app-insights?hours=24",
+      "page": "Infrastructure",
+      "http_code": 200,
+      "elapsed_s": 1.21,
+      "data_summary": "0 items",
+      "error": null,
+      "response_body": {
+        "data": [],
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 0.004199999921183917,
+          "result_count": 0,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:29:40.094248+00:00",
+          "suggested_viz": "stacked-area",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 36,
+      "method": "GET",
+      "path": "/debug/insights/active-users",
+      "page": "Insights",
+      "http_code": 200,
+      "elapsed_s": 1.31,
+      "data_summary": "2 items",
+      "error": null,
+      "response_body": {
+        "data": [
+          {
+            "id": "b0314ebd-df55-438d-8c6d-25a9da49996a",
+            "email": "integration-test@symmetryciam.onmicrosoft.com",
+            "name": "Integration Test User",
+            "last_login_at": "2026-03-13T04:28:43.625215Z",
+            "created_at": "2026-03-10T19:49:49.436411Z",
+            "is_whitelisted": true,
+            "job_count_30d": 80,
+            "conversation_count_30d": 62
+          },
+          {
+            "id": "d5c54c58-5c49-4b54-821e-1fa0336092b2",
+            "email": "jacobwarlck22@gmail.com",
+            "name": "Jacob Abraham",
+            "last_login_at": "2026-03-12T09:08:48.385695Z",
+            "created_at": "2026-03-12T09:08:48.385692Z",
+            "is_whitelisted": false,
+            "job_count_30d": 0,
+            "conversation_count_30d": 0
+          }
+        ],
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 14.362909000055879,
+          "result_count": 2,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:29:41.346262+00:00",
+          "suggested_viz": "table",
+          "columns": [
+            {
+              "key": "name",
+              "label": "Name",
+              "type": "string"
+            },
+            {
+              "key": "email",
+              "label": "Email",
+              "type": "string"
+            },
+            {
+              "key": "last_login_at",
+              "label": "Last Login",
+              "type": "date"
+            },
+            {
+              "key": "job_count_30d",
+              "label": "Jobs (30d)",
+              "type": "number"
+            },
+            {
+              "key": "conversation_count_30d",
+              "label": "Conversations (30d)",
+              "type": "number"
+            },
+            {
+              "key": "is_whitelisted",
+              "label": "Whitelisted",
+              "type": "boolean"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": 37,
+      "method": "GET",
+      "path": "/debug/insights/scaling",
+      "page": "Insights",
+      "http_code": 200,
+      "elapsed_s": 1.33,
+      "data_summary": "fields=['conversation_growth', 'job_throughput', 'top_workspaces', 'database_growth', 'neo4j_conversation_stats'] | query=90ms",
+      "error": null,
+      "response_body": {
+        "data": {
+          "conversation_growth": [
+            {
+              "date": "2026-03-10",
+              "conversations": 6,
+              "active_workspaces": 1
+            },
+            {
+              "date": "2026-03-11",
+              "conversations": 7,
+              "active_workspaces": 1
+            },
+            {
+              "date": "2026-03-12",
+              "conversations": 44,
+              "active_workspaces": 1
+            },
+            {
+              "date": "2026-03-13",
+              "conversations": 5,
+              "active_workspaces": 1
+            }
+          ],
+          "job_throughput": [
+            {
+              "date": "2026-03-10",
+              "job_type": "conversation",
+              "total": 6,
+              "completed": 3,
+              "failed": 3,
+              "avg_duration_secs": "178.60"
+            },
+            {
+              "date": "2026-03-10",
+              "job_type": "stream_turn",
+              "total": 5,
+              "completed": 3,
+              "failed": 2,
+              "avg_duration_secs": "216.11"
+            },
+            {
+              "date": "2026-03-11",
+              "job_type": "conversation",
+              "total": 7,
+              "completed": 2,
+              "failed": 5,
+              "avg_duration_secs": "118.59"
+            },
+            {
+              "date": "2026-03-11",
+              "job_type": "stream_turn",
+              "total": 2,
+              "completed": 2,
+              "failed": 0,
+              "avg_duration_secs": "72.98"
+            },
+            {
+              "date": "2026-03-12",
+              "job_type": "conversation",
+              "total": 44,
+              "completed": 42,
+              "failed": 2,
+              "avg_duration_secs": "10917.60"
+            },
+            {
+              "date": "2026-03-12",
+              "job_type": "export",
+              "total": 7,
+              "completed": 1,
+              "failed": 6,
+              "avg_duration_secs": "6634.86"
+            },
+            {
+              "date": "2026-03-12",
+              "job_type": "stream_turn",
+              "total": 4,
+              "completed": 4,
+              "failed": 0,
+              "avg_duration_secs": "123.64"
+            },
+            {
+              "date": "2026-03-13",
+              "job_type": "conversation",
+              "total": 5,
+              "completed": 1,
+              "failed": 0,
+              "avg_duration_secs": "6335.94"
+            }
+          ],
+          "top_workspaces": [
+            {
+              "workspace_name": "Integration Test User's Workspace",
+              "workspace_id": "22bdcb1a-6fe6-4a50-99d0-dc1cf69f8de7",
+              "members": 1,
+              "conversations_30d": 62,
+              "jobs_30d": 80
+            }
+          ],
+          "database_growth": [
+            {
+              "table_name": "processing_jobs",
+              "total_bytes": 163840,
+              "live_rows": 80
+            },
+            {
+              "table_name": "external_conversations",
+              "total_bytes": 114688,
+              "live_rows": 62
+            },
+            {
+              "table_name": "chat_messages",
+              "total_bytes": 81920,
+              "live_rows": 27
+            },
+            {
+              "table_name": "chat_conversations",
+              "total_bytes": 65536,
+              "live_rows": 14
+            },
+            {
+              "table_name": "users",
+              "total_bytes": 65536,
+              "live_rows": 2
+            },
+            {
+              "table_name": "workspace_settings",
+              "total_bytes": 57344,
+              "live_rows": 1
+            },
+            {
+              "table_name": "workspace_members",
+              "total_bytes": 40960,
+              "live_rows": 1
+            },
+            {
+              "table_name": "workspace_invitations",
+              "total_bytes": 40960,
+              "live_rows": 0
+            },
+            {
+              "table_name": "chat_connection_status",
+              "total_bytes": 40960,
+              "live_rows": 0
+            },
+            {
+              "table_name": "organization_encryption_keys",
+              "total_bytes": 32768,
+              "live_rows": 1
+            },
+            {
+              "table_name": "workspaces",
+              "total_bytes": 32768,
+              "live_rows": 1
+            },
+            {
+              "table_name": "_data_migrations",
+              "total_bytes": 32768,
+              "live_rows": 1
+            },
+            {
+              "table_name": "organizations",
+              "total_bytes": 32768,
+              "live_rows": 1
+            },
+            {
+              "table_name": "proactive_context_sessions",
+              "total_bytes": 32768,
+              "live_rows": 0
+            },
+            {
+              "table_name": "user_concerns",
+              "total_bytes": 24576,
+              "live_rows": 0
+            },
+            {
+              "table_name": "proactive_context_sections",
+              "total_bytes": 24576,
+              "live_rows": 0
+            },
+            {
+              "table_name": "user_settings",
+              "total_bytes": 24576,
+              "live_rows": 0
+            },
+            {
+              "table_name": "user_entities",
+              "total_bytes": 24576,
+              "live_rows": 0
+            },
+            {
+              "table_name": "knowledge_doc_generations",
+              "total_bytes": 24576,
+              "live_rows": 0
+            },
+            {
+              "table_name": "alembic_version",
+              "total_bytes": 24576,
+              "live_rows": 1
+            },
+            {
+              "table_name": "knowledge_doc_sections",
+              "total_bytes": 24576,
+              "live_rows": 0
+            }
+          ],
+          "neo4j_conversation_stats": {
+            "avg_nodes_per_graph": 1007.0,
+            "max_nodes": 1007,
+            "min_nodes": 1007,
+            "total_graphs": 1
+          }
+        },
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 89.97545200008972,
+          "result_count": 1,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:29:42.779273+00:00",
+          "suggested_viz": "table",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 38,
+      "method": "GET",
+      "path": "/debug/errors/deploy-correlation?hours=48",
+      "page": "Errors",
+      "http_code": 200,
+      "elapsed_s": 1.19,
+      "data_summary": "0 items",
+      "error": null,
+      "response_body": {
+        "data": [],
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 0.012799999922208372,
+          "result_count": 0,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:29:43.985606+00:00",
+          "suggested_viz": "table",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 39,
+      "method": "GET",
+      "path": "/debug/health/encryption",
+      "page": "Data Health",
+      "http_code": 200,
+      "elapsed_s": 1.23,
+      "data_summary": "fields=['status'] | empty=['encryption_table_exists', 'encryption_key_count'] | query=6ms",
+      "error": null,
+      "response_body": {
+        "data": {
+          "encryption_table_exists": false,
+          "encryption_key_count": 0,
+          "status": "not_configured"
+        },
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 5.8357039999918925,
+          "result_count": 1,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:29:45.217357+00:00",
+          "suggested_viz": "metric",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 40,
+      "method": "POST",
+      "path": "/debug/health/run-check",
+      "page": "Data Health",
+      "http_code": 200,
+      "elapsed_s": 1.23,
+      "data_summary": "fields=['postgresql', 'neo4j', 'storage', 'table_sizes', 'graph_stats', 'overall'] | query=55ms",
+      "error": null,
+      "response_body": {
+        "data": {
+          "postgresql": {
+            "healthy": true,
+            "message": "Connected"
+          },
+          "neo4j": {
+            "healthy": true,
+            "message": "Connected"
+          },
+          "storage": {
+            "healthy": true,
+            "message": "Connected"
+          },
+          "table_sizes": [
+            {
+              "table_name": "public.processing_jobs",
+              "total_size": "160 kB",
+              "size_bytes": 163840,
+              "row_estimate": 80
+            },
+            {
+              "table_name": "public.external_conversations",
+              "total_size": "112 kB",
+              "size_bytes": 114688,
+              "row_estimate": 62
+            },
+            {
+              "table_name": "public.chat_messages",
+              "total_size": "80 kB",
+              "size_bytes": 81920,
+              "row_estimate": 27
+            },
+            {
+              "table_name": "public.chat_conversations",
+              "total_size": "64 kB",
+              "size_bytes": 65536,
+              "row_estimate": 14
+            },
+            {
+              "table_name": "public.users",
+              "total_size": "64 kB",
+              "size_bytes": 65536,
+              "row_estimate": 2
+            },
+            {
+              "table_name": "public.workspace_settings",
+              "total_size": "56 kB",
+              "size_bytes": 57344,
+              "row_estimate": 1
+            },
+            {
+              "table_name": "public.workspace_members",
+              "total_size": "40 kB",
+              "size_bytes": 40960,
+              "row_estimate": 1
+            },
+            {
+              "table_name": "public.workspace_invitations",
+              "total_size": "40 kB",
+              "size_bytes": 40960,
+              "row_estimate": 0
+            },
+            {
+              "table_name": "public.chat_connection_status",
+              "total_size": "40 kB",
+              "size_bytes": 40960,
+              "row_estimate": 0
+            },
+            {
+              "table_name": "public.organization_encryption_keys",
+              "total_size": "32 kB",
+              "size_bytes": 32768,
+              "row_estimate": 1
+            },
+            {
+              "table_name": "public.workspaces",
+              "total_size": "32 kB",
+              "size_bytes": 32768,
+              "row_estimate": 1
+            },
+            {
+              "table_name": "public._data_migrations",
+              "total_size": "32 kB",
+              "size_bytes": 32768,
+              "row_estimate": 1
+            },
+            {
+              "table_name": "public.organizations",
+              "total_size": "32 kB",
+              "size_bytes": 32768,
+              "row_estimate": 1
+            },
+            {
+              "table_name": "public.proactive_context_sessions",
+              "total_size": "32 kB",
+              "size_bytes": 32768,
+              "row_estimate": 0
+            },
+            {
+              "table_name": "public.user_concerns",
+              "total_size": "24 kB",
+              "size_bytes": 24576,
+              "row_estimate": 0
+            },
+            {
+              "table_name": "public.proactive_context_sections",
+              "total_size": "24 kB",
+              "size_bytes": 24576,
+              "row_estimate": 0
+            },
+            {
+              "table_name": "public.user_settings",
+              "total_size": "24 kB",
+              "size_bytes": 24576,
+              "row_estimate": 0
+            },
+            {
+              "table_name": "public.user_entities",
+              "total_size": "24 kB",
+              "size_bytes": 24576,
+              "row_estimate": 0
+            },
+            {
+              "table_name": "public.knowledge_doc_generations",
+              "total_size": "24 kB",
+              "size_bytes": 24576,
+              "row_estimate": 0
+            },
+            {
+              "table_name": "public.alembic_version",
+              "total_size": "24 kB",
+              "size_bytes": 24576,
+              "row_estimate": 1
+            },
+            {
+              "table_name": "public.knowledge_doc_sections",
+              "total_size": "24 kB",
+              "size_bytes": 24576,
+              "row_estimate": 0
+            }
+          ],
+          "graph_stats": {
+            "node_count": 1007,
+            "edge_count": 628
+          },
+          "overall": "healthy"
+        },
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 55.443233999994845,
+          "result_count": 1,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:29:46.485040+00:00",
+          "suggested_viz": "table",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 41,
+      "method": "GET",
+      "path": "/debug/infra/topology",
+      "page": "Infrastructure",
+      "http_code": 200,
+      "elapsed_s": 1.79,
+      "data_summary": "fields=['services', 'region'] | query=538ms",
+      "error": null,
+      "response_body": {
+        "data": {
+          "services": [
+            {
+              "name": "ca-sym-api-prod",
+              "location": "Central US",
+              "provisioning_state": "Succeeded",
+              "running_status": null,
+              "latest_revision": "ca-sym-api-prod--deploy-64"
+            },
+            {
+              "name": "ca-sym-retrieval-prod",
+              "location": "Central US",
+              "provisioning_state": "Succeeded",
+              "running_status": null,
+              "latest_revision": "ca-sym-retrieval-prod--deploy-64"
+            },
+            {
+              "name": "ca-sym-processor-prod",
+              "location": "Central US",
+              "provisioning_state": "Succeeded",
+              "running_status": null,
+              "latest_revision": "ca-sym-processor-prod--deploy-64"
+            },
+            {
+              "name": "ca-sym-router-prod",
+              "location": "Central US",
+              "provisioning_state": "Succeeded",
+              "running_status": null,
+              "latest_revision": "ca-sym-router-prod--deploy-64"
+            },
+            {
+              "name": "ca-sym-debugger-prod",
+              "location": "Central US",
+              "provisioning_state": "Succeeded",
+              "running_status": null,
+              "latest_revision": "ca-sym-debugger-prod--deploy-64"
+            }
+          ],
+          "region": "centralus"
+        },
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 537.7547260000028,
+          "result_count": 1,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:29:48.224891+00:00",
+          "suggested_viz": "topology",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 42,
+      "method": "GET",
+      "path": "/debug/infra/container-apps/detailed",
+      "page": "Infrastructure",
+      "http_code": 200,
+      "elapsed_s": 5.52,
+      "data_summary": "fields=['apps', 'summary'] | query=4315ms",
+      "error": null,
+      "response_body": {
+        "data": {
+          "apps": [
+            {
+              "name": "ca-sym-api-prod",
+              "location": "Central US",
+              "provisioning_state": "Succeeded",
+              "latest_revision": "ca-sym-api-prod--deploy-64",
+              "fqdn": "ca-sym-api-prod.yellowground-3e7c991a.centralus.azurecontainerapps.io",
+              "min_replicas": 2,
+              "max_replicas": 10,
+              "recent_revisions": [
+                {
+                  "name": "ca-sym-api-prod--i6e2382",
+                  "created": "2026-03-09 09:57:35+00:00",
+                  "active": false,
+                  "traffic_weight": 0,
+                  "provisioning_state": "Provisioned",
+                  "replicas": 0
+                },
+                {
+                  "name": "ca-sym-api-prod--deploy-22",
+                  "created": "2026-03-09 10:14:09+00:00",
+                  "active": false,
+                  "traffic_weight": 0,
+                  "provisioning_state": "Provisioned",
+                  "replicas": 0
+                },
+                {
+                  "name": "ca-sym-api-prod--0000001",
+                  "created": "2026-03-09 10:21:12+00:00",
+                  "active": false,
+                  "traffic_weight": 0,
+                  "provisioning_state": "Provisioned",
+                  "replicas": 0
+                },
+                {
+                  "name": "ca-sym-api-prod--deploy-23",
+                  "created": "2026-03-09 10:57:50+00:00",
+                  "active": false,
+                  "traffic_weight": 0,
+                  "provisioning_state": "Provisioned",
+                  "replicas": 0
+                },
+                {
+                  "name": "ca-sym-api-prod--0000002",
+                  "created": "2026-03-09 11:04:56+00:00",
+                  "active": false,
+                  "traffic_weight": 0,
+                  "provisioning_state": "Provisioned",
+                  "replicas": 0
+                }
+              ],
+              "metrics": {
+                "cpu_millicores": 2.5,
+                "memory_mb": 155.03,
+                "restarts": 0
+              }
+            },
+            {
+              "name": "ca-sym-retrieval-prod",
+              "location": "Central US",
+              "provisioning_state": "Succeeded",
+              "latest_revision": "ca-sym-retrieval-prod--deploy-64",
+              "fqdn": "ca-sym-retrieval-prod.yellowground-3e7c991a.centralus.azurecontainerapps.io",
+              "min_replicas": 2,
+              "max_replicas": 10,
+              "recent_revisions": [
+                {
+                  "name": "ca-sym-retrieval-prod--d5zrwoo",
+                  "created": "2026-03-09 09:58:50+00:00",
+                  "active": false,
+                  "traffic_weight": 0,
+                  "provisioning_state": "Provisioned",
+                  "replicas": 0
+                },
+                {
+                  "name": "ca-sym-retrieval-prod--deploy-22",
+                  "created": "2026-03-09 10:13:59+00:00",
+                  "active": false,
+                  "traffic_weight": 0,
+                  "provisioning_state": "Provisioned",
+                  "replicas": 0
+                },
+                {
+                  "name": "ca-sym-retrieval-prod--0000001",
+                  "created": "2026-03-09 10:21:19+00:00",
+                  "active": false,
+                  "traffic_weight": 0,
+                  "provisioning_state": "Provisioned",
+                  "replicas": 0
+                },
+                {
+                  "name": "ca-sym-retrieval-prod--deploy-23",
+                  "created": "2026-03-09 10:57:50+00:00",
+                  "active": false,
+                  "traffic_weight": 0,
+                  "provisioning_state": "Provisioned",
+                  "replicas": 0
+                },
+                {
+                  "name": "ca-sym-retrieval-prod--0000002",
+                  "created": "2026-03-09 11:04:46+00:00",
+                  "active": false,
+                  "traffic_weight": 0,
+                  "provisioning_state": "Provisioned",
+                  "replicas": 0
+                }
+              ],
+              "metrics": {
+                "cpu_millicores": 3.22,
+                "memory_mb": 195.93,
+                "restarts": 0
+              }
+            },
+            {
+              "name": "ca-sym-processor-prod",
+              "location": "Central US",
+              "provisioning_state": "Succeeded",
+              "latest_revision": "ca-sym-processor-prod--deploy-64",
+              "fqdn": "ca-sym-processor-prod.internal.yellowground-3e7c991a.centralus.azurecontainerapps.io",
+              "min_replicas": 1,
+              "max_replicas": 10,
+              "recent_revisions": [
+                {
+                  "name": "ca-sym-processor-prod--d18mlqy",
+                  "created": "2026-03-09 10:00:11+00:00",
+                  "active": false,
+                  "traffic_weight": 0,
+                  "provisioning_state": "Provisioned",
+                  "replicas": 0
+                },
+                {
+                  "name": "ca-sym-processor-prod--deploy-22",
+                  "created": "2026-03-09 10:13:59+00:00",
+                  "active": false,
+                  "traffic_weight": 0,
+                  "provisioning_state": "Provisioned",
+                  "replicas": 0
+                },
+                {
+                  "name": "ca-sym-processor-prod--0000001",
+                  "created": "2026-03-09 10:21:19+00:00",
+                  "active": false,
+                  "traffic_weight": 0,
+                  "provisioning_state": "Provisioned",
+                  "replicas": 0
+                },
+                {
+                  "name": "ca-sym-processor-prod--deploy-23",
+                  "created": "2026-03-09 10:57:49+00:00",
+                  "active": false,
+                  "traffic_weight": 0,
+                  "provisioning_state": "Provisioned",
+                  "replicas": 0
+                },
+                {
+                  "name": "ca-sym-processor-prod--0000002",
+                  "created": "2026-03-09 11:04:54+00:00",
+                  "active": false,
+                  "traffic_weight": 0,
+                  "provisioning_state": "Provisioned",
+                  "replicas": 0
+                }
+              ],
+              "metrics": {
+                "cpu_millicores": 8.62,
+                "memory_mb": 254.19,
+                "restarts": 0
+              }
+            },
+            {
+              "name": "ca-sym-router-prod",
+              "location": "Central US",
+              "provisioning_state": "Succeeded",
+              "latest_revision": "ca-sym-router-prod--deploy-64",
+              "fqdn": "ca-sym-router-prod.yellowground-3e7c991a.centralus.azurecontainerapps.io",
+              "min_replicas": 2,
+              "max_replicas": 10,
+              "recent_revisions": [
+                {
+                  "name": "ca-sym-router-prod--vb70cv0",
+                  "created": "2026-03-11 14:23:09+00:00",
+                  "active": false,
+                  "traffic_weight": 0,
+                  "provisioning_state": "Provisioned",
+                  "replicas": 0
+                },
+                {
+                  "name": "ca-sym-router-prod--fresh-0256",
+                  "created": "2026-03-11 14:44:28+00:00",
+                  "active": false,
+                  "traffic_weight": 0,
+                  "provisioning_state": "Provisioned",
+                  "replicas": 0
+                },
+                {
+                  "name": "ca-sym-router-prod--deploy-47",
+                  "created": "2026-03-12 01:12:42+00:00",
+                  "active": false,
+                  "traffic_weight": 0,
+                  "provisioning_state": "Provisioned",
+                  "replicas": 0
+                },
+                {
+                  "name": "ca-sym-router-prod--deploy-48",
+                  "created": "2026-03-12 01:24:13+00:00",
+                  "active": false,
+                  "traffic_weight": 0,
+                  "provisioning_state": "Provisioned",
+                  "replicas": 0
+                },
+                {
+                  "name": "ca-sym-router-prod--deploy-49",
+                  "created": "2026-03-12 02:10:14+00:00",
+                  "active": false,
+                  "traffic_weight": 0,
+                  "provisioning_state": "Provisioned",
+                  "replicas": 0
+                }
+              ],
+              "metrics": {
+                "cpu_millicores": 4.81,
+                "memory_mb": 155.69,
+                "restarts": 0
+              }
+            },
+            {
+              "name": "ca-sym-debugger-prod",
+              "location": "Central US",
+              "provisioning_state": "Succeeded",
+              "latest_revision": "ca-sym-debugger-prod--deploy-64",
+              "fqdn": "ca-sym-debugger-prod.yellowground-3e7c991a.centralus.azurecontainerapps.io",
+              "min_replicas": 1,
+              "max_replicas": 5,
+              "recent_revisions": [
+                {
+                  "name": "ca-sym-debugger-prod--np1jra0",
+                  "created": "2026-03-12 17:08:01+00:00",
+                  "active": false,
+                  "traffic_weight": 0,
+                  "provisioning_state": "Provisioned",
+                  "replicas": 0
+                },
+                {
+                  "name": "ca-sym-debugger-prod--0000001",
+                  "created": "2026-03-12 17:50:49+00:00",
+                  "active": false,
+                  "traffic_weight": 0,
+                  "provisioning_state": "Provisioned",
+                  "replicas": 0
+                },
+                {
+                  "name": "ca-sym-debugger-prod--0000002",
+                  "created": "2026-03-12 17:56:16+00:00",
+                  "active": false,
+                  "traffic_weight": 0,
+                  "provisioning_state": "Provisioned",
+                  "replicas": 0
+                },
+                {
+                  "name": "ca-sym-debugger-prod--0000003",
+                  "created": "2026-03-12 18:01:10+00:00",
+                  "active": false,
+                  "traffic_weight": 0,
+                  "provisioning_state": "Provisioned",
+                  "replicas": 0
+                },
+                {
+                  "name": "ca-sym-debugger-prod--0000004",
+                  "created": "2026-03-12 18:07:18+00:00",
+                  "active": false,
+                  "traffic_weight": 0,
+                  "provisioning_state": "Provisioned",
+                  "replicas": 0
+                }
+              ],
+              "metrics": {
+                "cpu_millicores": 0.0,
+                "memory_mb": 189.37,
+                "restarts": 0
+              }
+            }
+          ],
+          "summary": {
+            "total_apps": 5,
+            "running_apps": 5,
+            "total_replicas": 8
+          }
+        },
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 4315.3873779999685,
+          "result_count": 5,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:29:53.835199+00:00",
+          "suggested_viz": "table",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 43,
+      "method": "GET",
+      "path": "/debug/infra/alerts?hours=24",
+      "page": "Infrastructure",
+      "http_code": 200,
+      "elapsed_s": 1.26,
+      "data_summary": "fields=[] | empty=['fired_alerts', 'alert_traces'] | query=0ms",
+      "error": null,
+      "response_body": {
+        "data": {
+          "fired_alerts": [],
+          "alert_traces": []
+        },
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 0.004300000000512227,
+          "result_count": 0,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:29:55.114967+00:00",
+          "suggested_viz": "table",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 44,
+      "method": "GET",
+      "path": "/debug/infra/deployments",
+      "page": "Infrastructure",
+      "http_code": 200,
+      "elapsed_s": 3.04,
+      "data_summary": "fields=['deployments', 'apps', 'summary'] | query=1548ms",
+      "error": null,
+      "response_body": {
+        "data": {
+          "deployments": [
+            {
+              "app_name": "ca-sym-router-prod",
+              "revision_name": "ca-sym-router-prod--deploy-64",
+              "created": "2026-03-13 04:27:13+00:00",
+              "active": true,
+              "traffic_weight": 100,
+              "provisioning_state": "Provisioned",
+              "replicas": 2
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-64",
+              "created": "2026-03-13 04:25:42+00:00",
+              "active": true,
+              "traffic_weight": 100,
+              "provisioning_state": "Provisioned",
+              "replicas": 2
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-64",
+              "created": "2026-03-13 04:25:42+00:00",
+              "active": true,
+              "traffic_weight": 100,
+              "provisioning_state": "Provisioned",
+              "replicas": 2
+            },
+            {
+              "app_name": "ca-sym-debugger-prod",
+              "revision_name": "ca-sym-debugger-prod--deploy-64",
+              "created": "2026-03-13 04:25:41+00:00",
+              "active": true,
+              "traffic_weight": 100,
+              "provisioning_state": "Provisioned",
+              "replicas": 1
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-64",
+              "created": "2026-03-13 04:25:40+00:00",
+              "active": true,
+              "traffic_weight": 100,
+              "provisioning_state": "Provisioned",
+              "replicas": 1
+            },
+            {
+              "app_name": "ca-sym-debugger-prod",
+              "revision_name": "ca-sym-debugger-prod--0000011",
+              "created": "2026-03-13 04:18:23+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-router-prod",
+              "revision_name": "ca-sym-router-prod--deploy-63",
+              "created": "2026-03-13 04:16:09+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-63",
+              "created": "2026-03-13 04:14:53+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-63",
+              "created": "2026-03-13 04:14:48+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-debugger-prod",
+              "revision_name": "ca-sym-debugger-prod--deploy-63",
+              "created": "2026-03-13 04:14:44+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-63",
+              "created": "2026-03-13 04:14:36+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-router-prod",
+              "revision_name": "ca-sym-router-prod--deploy-62",
+              "created": "2026-03-13 03:58:10+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-62",
+              "created": "2026-03-13 03:56:37+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-62",
+              "created": "2026-03-13 03:56:36+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-62",
+              "created": "2026-03-13 03:56:36+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-debugger-prod",
+              "revision_name": "ca-sym-debugger-prod--deploy-62",
+              "created": "2026-03-13 03:56:28+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-router-prod",
+              "revision_name": "ca-sym-router-prod--deploy-61",
+              "created": "2026-03-13 03:11:05+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-61",
+              "created": "2026-03-13 03:10:06+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-61",
+              "created": "2026-03-13 03:09:32+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-61",
+              "created": "2026-03-13 03:09:29+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-debugger-prod",
+              "revision_name": "ca-sym-debugger-prod--deploy-61",
+              "created": "2026-03-13 03:09:27+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-router-prod",
+              "revision_name": "ca-sym-router-prod--deploy-60",
+              "created": "2026-03-13 02:32:38+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-60",
+              "created": "2026-03-13 02:31:18+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-60",
+              "created": "2026-03-13 02:31:07+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-60",
+              "created": "2026-03-13 02:31:07+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-debugger-prod",
+              "revision_name": "ca-sym-debugger-prod--deploy-60",
+              "created": "2026-03-13 02:31:07+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-router-prod",
+              "revision_name": "ca-sym-router-prod--deploy-59",
+              "created": "2026-03-12 22:43:43+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-59",
+              "created": "2026-03-12 22:42:15+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-59",
+              "created": "2026-03-12 22:42:07+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-59",
+              "created": "2026-03-12 22:42:06+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-debugger-prod",
+              "revision_name": "ca-sym-debugger-prod--deploy-59",
+              "created": "2026-03-12 22:42:06+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-debugger-prod",
+              "revision_name": "ca-sym-debugger-prod--0000010",
+              "created": "2026-03-12 22:15:30+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-debugger-prod",
+              "revision_name": "ca-sym-debugger-prod--0000009",
+              "created": "2026-03-12 22:14:04+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-debugger-prod",
+              "revision_name": "ca-sym-debugger-prod--0000008",
+              "created": "2026-03-12 21:59:19+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-router-prod",
+              "revision_name": "ca-sym-router-prod--deploy-58",
+              "created": "2026-03-12 21:11:32+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-58",
+              "created": "2026-03-12 21:10:07+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-debugger-prod",
+              "revision_name": "ca-sym-debugger-prod--deploy-58",
+              "created": "2026-03-12 21:10:04+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-58",
+              "created": "2026-03-12 21:10:03+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-58",
+              "created": "2026-03-12 21:10:01+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-router-prod",
+              "revision_name": "ca-sym-router-prod--deploy-57",
+              "created": "2026-03-12 20:30:16+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-57",
+              "created": "2026-03-12 20:28:50+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-57",
+              "created": "2026-03-12 20:28:43+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-debugger-prod",
+              "revision_name": "ca-sym-debugger-prod--deploy-57",
+              "created": "2026-03-12 20:28:43+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-57",
+              "created": "2026-03-12 20:28:41+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-router-prod",
+              "revision_name": "ca-sym-router-prod--0000005",
+              "created": "2026-03-12 18:58:26+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-router-prod",
+              "revision_name": "ca-sym-router-prod--0000004",
+              "created": "2026-03-12 18:56:07+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-debugger-prod",
+              "revision_name": "ca-sym-debugger-prod--0000007",
+              "created": "2026-03-12 18:54:22+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-router-prod",
+              "revision_name": "ca-sym-router-prod--0000003",
+              "created": "2026-03-12 18:41:48+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-router-prod",
+              "revision_name": "ca-sym-router-prod--0000002",
+              "created": "2026-03-12 18:36:00+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-debugger-prod",
+              "revision_name": "ca-sym-debugger-prod--0000006",
+              "created": "2026-03-12 18:28:21+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-router-prod",
+              "revision_name": "ca-sym-router-prod--0000001",
+              "created": "2026-03-12 18:17:10+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-debugger-prod",
+              "revision_name": "ca-sym-debugger-prod--0000005",
+              "created": "2026-03-12 18:14:46+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-debugger-prod",
+              "revision_name": "ca-sym-debugger-prod--0000004",
+              "created": "2026-03-12 18:07:18+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-debugger-prod",
+              "revision_name": "ca-sym-debugger-prod--0000003",
+              "created": "2026-03-12 18:01:10+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-debugger-prod",
+              "revision_name": "ca-sym-debugger-prod--0000002",
+              "created": "2026-03-12 17:56:16+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-debugger-prod",
+              "revision_name": "ca-sym-debugger-prod--0000001",
+              "created": "2026-03-12 17:50:49+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-debugger-prod",
+              "revision_name": "ca-sym-debugger-prod--np1jra0",
+              "created": "2026-03-12 17:08:01+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-router-prod",
+              "revision_name": "ca-sym-router-prod--deploy-55",
+              "created": "2026-03-12 10:03:17+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-55",
+              "created": "2026-03-12 10:02:35+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-55",
+              "created": "2026-03-12 10:02:25+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-55",
+              "created": "2026-03-12 10:02:14+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-router-prod",
+              "revision_name": "ca-sym-router-prod--deploy-54",
+              "created": "2026-03-12 09:47:46+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-54",
+              "created": "2026-03-12 09:46:33+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-54",
+              "created": "2026-03-12 09:46:33+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-54",
+              "created": "2026-03-12 09:46:32+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-router-prod",
+              "revision_name": "ca-sym-router-prod--deploy-53",
+              "created": "2026-03-12 09:41:18+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-53",
+              "created": "2026-03-12 09:40:29+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-53",
+              "created": "2026-03-12 09:40:28+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-53",
+              "created": "2026-03-12 09:40:17+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-router-prod",
+              "revision_name": "ca-sym-router-prod--deploy-52",
+              "created": "2026-03-12 09:36:09+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-52",
+              "created": "2026-03-12 09:34:57+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-52",
+              "created": "2026-03-12 09:34:56+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-52",
+              "created": "2026-03-12 09:34:48+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-router-prod",
+              "revision_name": "ca-sym-router-prod--deploy-51",
+              "created": "2026-03-12 06:53:52+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-51",
+              "created": "2026-03-12 06:52:31+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-51",
+              "created": "2026-03-12 06:52:30+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-51",
+              "created": "2026-03-12 06:52:29+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--0000005",
+              "created": "2026-03-12 06:40:50+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--0000005",
+              "created": "2026-03-12 06:39:53+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--0000005",
+              "created": "2026-03-12 06:39:19+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-router-prod",
+              "revision_name": "ca-sym-router-prod--deploy-50",
+              "created": "2026-03-12 04:47:51+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-50",
+              "created": "2026-03-12 04:46:47+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-50",
+              "created": "2026-03-12 04:46:34+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-50",
+              "created": "2026-03-12 04:46:33+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-router-prod",
+              "revision_name": "ca-sym-router-prod--deploy-49",
+              "created": "2026-03-12 02:10:14+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-49",
+              "created": "2026-03-12 02:09:16+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-49",
+              "created": "2026-03-12 02:09:10+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-49",
+              "created": "2026-03-12 02:09:02+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-router-prod",
+              "revision_name": "ca-sym-router-prod--deploy-48",
+              "created": "2026-03-12 01:24:13+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-48",
+              "created": "2026-03-12 01:23:07+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-48",
+              "created": "2026-03-12 01:23:00+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-48",
+              "created": "2026-03-12 01:22:59+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-router-prod",
+              "revision_name": "ca-sym-router-prod--deploy-47",
+              "created": "2026-03-12 01:12:42+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-47",
+              "created": "2026-03-12 01:11:37+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-47",
+              "created": "2026-03-12 01:11:33+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-47",
+              "created": "2026-03-12 01:11:30+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-router-prod",
+              "revision_name": "ca-sym-router-prod--fresh-0256",
+              "created": "2026-03-11 14:44:28+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-router-prod",
+              "revision_name": "ca-sym-router-prod--vb70cv0",
+              "created": "2026-03-11 14:23:09+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--0000004",
+              "created": "2026-03-11 13:18:08+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--0000004",
+              "created": "2026-03-11 13:17:38+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-44",
+              "created": "2026-03-11 12:29:52+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-44",
+              "created": "2026-03-11 12:29:52+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-44",
+              "created": "2026-03-11 12:29:51+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-43",
+              "created": "2026-03-11 02:34:08+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-43",
+              "created": "2026-03-11 02:34:05+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-43",
+              "created": "2026-03-11 02:33:58+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-42",
+              "created": "2026-03-11 02:13:05+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-42",
+              "created": "2026-03-11 02:13:03+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-42",
+              "created": "2026-03-11 02:13:02+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-41",
+              "created": "2026-03-11 01:19:44+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-41",
+              "created": "2026-03-11 01:19:35+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-41",
+              "created": "2026-03-11 01:19:33+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-40",
+              "created": "2026-03-11 00:32:12+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-40",
+              "created": "2026-03-11 00:32:02+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-40",
+              "created": "2026-03-11 00:31:57+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-39",
+              "created": "2026-03-11 00:20:14+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-39",
+              "created": "2026-03-11 00:20:09+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-39",
+              "created": "2026-03-11 00:20:01+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-38",
+              "created": "2026-03-10 23:15:26+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-38",
+              "created": "2026-03-10 23:15:13+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-38",
+              "created": "2026-03-10 23:15:13+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-37",
+              "created": "2026-03-10 22:45:17+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-37",
+              "created": "2026-03-10 22:45:17+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-37",
+              "created": "2026-03-10 22:45:16+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-36",
+              "created": "2026-03-10 20:39:23+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-36",
+              "created": "2026-03-10 20:39:18+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-36",
+              "created": "2026-03-10 20:39:17+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--0000003",
+              "created": "2026-03-10 20:22:20+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--0000004",
+              "created": "2026-03-10 20:21:53+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--0000003",
+              "created": "2026-03-10 20:21:28+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-35",
+              "created": "2026-03-10 19:47:37+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-35",
+              "created": "2026-03-10 19:47:35+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-35",
+              "created": "2026-03-10 19:47:26+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-34",
+              "created": "2026-03-10 19:33:10+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-34",
+              "created": "2026-03-10 19:33:00+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-34",
+              "created": "2026-03-10 19:32:59+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--0000003",
+              "created": "2026-03-10 18:58:58+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-33",
+              "created": "2026-03-10 18:10:19+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-33",
+              "created": "2026-03-10 18:10:13+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-33",
+              "created": "2026-03-10 18:10:07+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-32",
+              "created": "2026-03-10 16:04:38+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-32",
+              "created": "2026-03-10 16:04:31+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-32",
+              "created": "2026-03-10 16:04:31+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-31",
+              "created": "2026-03-10 14:48:39+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-31",
+              "created": "2026-03-10 14:48:30+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-31",
+              "created": "2026-03-10 14:48:30+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-30",
+              "created": "2026-03-10 13:41:39+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-30",
+              "created": "2026-03-10 13:41:34+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-30",
+              "created": "2026-03-10 13:41:32+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-29",
+              "created": "2026-03-10 08:29:21+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-29",
+              "created": "2026-03-10 08:28:55+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-29",
+              "created": "2026-03-10 08:28:45+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-28",
+              "created": "2026-03-10 07:28:31+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-28",
+              "created": "2026-03-10 07:28:27+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-28",
+              "created": "2026-03-10 07:28:20+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-27",
+              "created": "2026-03-10 07:25:44+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-27",
+              "created": "2026-03-10 07:25:44+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-27",
+              "created": "2026-03-10 07:25:43+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-26",
+              "created": "2026-03-10 07:08:54+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-26",
+              "created": "2026-03-10 07:08:52+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-26",
+              "created": "2026-03-10 07:08:52+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-25",
+              "created": "2026-03-09 14:00:33+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-25",
+              "created": "2026-03-09 14:00:30+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-25",
+              "created": "2026-03-09 14:00:28+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-24",
+              "created": "2026-03-09 12:58:28+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-24",
+              "created": "2026-03-09 12:58:17+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-24",
+              "created": "2026-03-09 12:58:16+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--0000002",
+              "created": "2026-03-09 11:04:56+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--0000002",
+              "created": "2026-03-09 11:04:54+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--0000002",
+              "created": "2026-03-09 11:04:46+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-23",
+              "created": "2026-03-09 10:57:50+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-23",
+              "created": "2026-03-09 10:57:50+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-23",
+              "created": "2026-03-09 10:57:49+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--0000001",
+              "created": "2026-03-09 10:21:19+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--0000001",
+              "created": "2026-03-09 10:21:19+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--0000001",
+              "created": "2026-03-09 10:21:12+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--deploy-22",
+              "created": "2026-03-09 10:14:09+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--deploy-22",
+              "created": "2026-03-09 10:13:59+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--deploy-22",
+              "created": "2026-03-09 10:13:59+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-processor-prod",
+              "revision_name": "ca-sym-processor-prod--d18mlqy",
+              "created": "2026-03-09 10:00:11+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-retrieval-prod",
+              "revision_name": "ca-sym-retrieval-prod--d5zrwoo",
+              "created": "2026-03-09 09:58:50+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            },
+            {
+              "app_name": "ca-sym-api-prod",
+              "revision_name": "ca-sym-api-prod--i6e2382",
+              "created": "2026-03-09 09:57:35+00:00",
+              "active": false,
+              "traffic_weight": 0,
+              "provisioning_state": "Provisioned",
+              "replicas": 0
+            }
+          ],
+          "apps": [
+            {
+              "name": "ca-sym-api-prod",
+              "location": "Central US",
+              "provisioning_state": "Succeeded",
+              "running_status": null,
+              "latest_revision": "ca-sym-api-prod--deploy-64"
+            },
+            {
+              "name": "ca-sym-retrieval-prod",
+              "location": "Central US",
+              "provisioning_state": "Succeeded",
+              "running_status": null,
+              "latest_revision": "ca-sym-retrieval-prod--deploy-64"
+            },
+            {
+              "name": "ca-sym-processor-prod",
+              "location": "Central US",
+              "provisioning_state": "Succeeded",
+              "running_status": null,
+              "latest_revision": "ca-sym-processor-prod--deploy-64"
+            },
+            {
+              "name": "ca-sym-router-prod",
+              "location": "Central US",
+              "provisioning_state": "Succeeded",
+              "running_status": null,
+              "latest_revision": "ca-sym-router-prod--deploy-64"
+            },
+            {
+              "name": "ca-sym-debugger-prod",
+              "location": "Central US",
+              "provisioning_state": "Succeeded",
+              "running_status": null,
+              "latest_revision": "ca-sym-debugger-prod--deploy-64"
+            }
+          ],
+          "summary": {
+            "total_apps": 5,
+            "total_revisions": 182,
+            "last_deployment": "2026-03-13 04:27:13+00:00"
+          }
+        },
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 1547.7610360001108,
+          "result_count": 182,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:29:57.861149+00:00",
+          "suggested_viz": "table",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 45,
+      "method": "GET",
+      "path": "/debug/infra/database/metrics?hours=24",
+      "page": "Infrastructure",
+      "http_code": 500,
+      "elapsed_s": 1.37,
+      "data_summary": "Non-JSON: Internal Server Error",
+      "error": "Non-JSON response",
+      "response_body": null
+    },
+    {
+      "id": 46,
+      "method": "GET",
+      "path": "/debug/infra/llm/costs?days=30",
+      "page": "LLM Metrics",
+      "http_code": 200,
+      "elapsed_s": 1.21,
+      "data_summary": "fields=['budget'] | empty=['total_cost', 'total_tokens', 'total_calls', 'by_model', 'daily_costs'] | query=0ms",
+      "error": null,
+      "response_body": {
+        "data": {
+          "total_cost": 0,
+          "total_tokens": 0,
+          "total_calls": 0,
+          "by_model": [],
+          "daily_costs": [],
+          "budget": {
+            "estimated_monthly": 0.0,
+            "daily_average": 0.0
+          }
+        },
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 0.0674999998864223,
+          "result_count": 1,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:30:00.788069+00:00",
+          "suggested_viz": "table",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 47,
+      "method": "GET",
+      "path": "/debug/infra/llm/metrics?hours=24",
+      "page": "LLM Metrics",
+      "http_code": 200,
+      "elapsed_s": 1.2,
+      "data_summary": "fields=[] | empty=['totals', 'over_time', 'latency', 'token_breakdown'] | query=0ms",
+      "error": null,
+      "response_body": {
+        "data": {
+          "totals": {},
+          "over_time": [],
+          "latency": [],
+          "token_breakdown": []
+        },
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 0.055400000064764754,
+          "result_count": 1,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:30:02.006424+00:00",
+          "suggested_viz": "table",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 48,
+      "method": "GET",
+      "path": "/debug/scale/events?hours=24",
+      "page": "Scalability",
+      "http_code": 200,
+      "elapsed_s": 1.35,
+      "data_summary": "0 items",
+      "error": null,
+      "response_body": {
+        "data": [],
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 0.003800000058618025,
+          "result_count": 0,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:30:03.326393+00:00",
+          "suggested_viz": "table",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 49,
+      "method": "POST",
+      "path": "/debug/logs/ai-generate",
+      "page": "Log Explorer",
+      "http_code": 200,
+      "elapsed_s": 1.21,
+      "data_summary": "fields=['query', 'question'] | query=0ms",
+      "error": null,
+      "response_body": {
+        "data": {
+          "query": "// AI-generated query for: Show me the top 5 slowest requests in the last hour\nrequests\n| where timestamp > ago(24h)\n| summarize count() by name",
+          "question": "Show me the top 5 slowest requests in the last hour"
+        },
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 0.0009000000318337698,
+          "result_count": 1,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:30:04.563810+00:00",
+          "suggested_viz": "table",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 50,
+      "method": "POST",
+      "path": "/debug/queries/sql",
+      "page": "Queries",
+      "http_code": 403,
+      "elapsed_s": 0.27,
+      "data_summary": "ERROR: {'error': 'Blocked by WAF'}",
+      "error": "{'error': 'Blocked by WAF'}",
+      "response_body": {
+        "error": "Blocked by WAF"
+      }
+    },
+    {
+      "id": 51,
+      "method": "POST",
+      "path": "/debug/queries/cypher",
+      "page": "Queries",
+      "http_code": 403,
+      "elapsed_s": 0.25,
+      "data_summary": "ERROR: {'error': 'Blocked by WAF'}",
+      "error": "{'error': 'Blocked by WAF'}",
+      "response_body": {
+        "error": "Blocked by WAF"
+      }
+    },
+    {
+      "id": 52,
+      "method": "GET",
+      "path": "/debug/observability/api-performance?hours=24",
+      "page": "Observability",
+      "http_code": 200,
+      "elapsed_s": 1.22,
+      "data_summary": "0 items",
+      "error": null,
+      "response_body": {
+        "data": [],
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 0.009299999874201603,
+          "result_count": 0,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:30:06.368391+00:00",
+          "suggested_viz": "table",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 53,
+      "method": "GET",
+      "path": "/debug/observability/dependency-map?hours=24",
+      "page": "Observability",
+      "http_code": 200,
+      "elapsed_s": 1.3,
+      "data_summary": "0 items",
+      "error": null,
+      "response_body": {
+        "data": [],
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 0.008400000069741509,
+          "result_count": 0,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:30:07.701648+00:00",
+          "suggested_viz": "table",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 54,
+      "method": "GET",
+      "path": "/debug/observability/error-hotspots?hours=24",
+      "page": "Observability",
+      "http_code": 200,
+      "elapsed_s": 1.3,
+      "data_summary": "0 items",
+      "error": null,
+      "response_body": {
+        "data": [],
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 0.009200000022246968,
+          "result_count": 0,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:30:09.015172+00:00",
+          "suggested_viz": "table",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 55,
+      "method": "GET",
+      "path": "/debug/observability/throughput-trends?hours=24",
+      "page": "Observability",
+      "http_code": 200,
+      "elapsed_s": 1.27,
+      "data_summary": "0 items",
+      "error": null,
+      "response_body": {
+        "data": [],
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 0.009300000101575279,
+          "result_count": 0,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:30:10.301748+00:00",
+          "suggested_viz": "area-chart",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 56,
+      "method": "GET",
+      "path": "/debug/observability/slo-status?hours=24",
+      "page": "Observability",
+      "http_code": 200,
+      "elapsed_s": 1.18,
+      "data_summary": "fields=['availability', 'latency', 'error_budget', 'window_hours'] | empty=['totals'] | query=0ms",
+      "error": null,
+      "response_body": {
+        "data": {
+          "availability": {
+            "current": 0.0,
+            "target": 99.9,
+            "status": "at_risk"
+          },
+          "latency": {
+            "pct_under_500ms": 0.0,
+            "target": 95.0,
+            "status": "at_risk"
+          },
+          "error_budget": {
+            "total": 0,
+            "used": 0,
+            "remaining": 0,
+            "burn_rate": 0.0
+          },
+          "totals": {},
+          "window_hours": 24
+        },
+        "metadata": {
+          "region": "centralus",
+          "query_time_ms": 0.018599999975776882,
+          "result_count": 1,
+          "scrubbed": false,
+          "timestamp": "2026-03-13T04:30:11.501497+00:00",
+          "suggested_viz": "table",
+          "columns": []
+        }
+      }
+    },
+    {
+      "id": 57,
+      "method": "GET",
+      "path": "/debug/tools/schema",
+      "page": "Tools",
+      "http_code": 200,
+      "elapsed_s": 1.43,
+      "data_summary": "fields=['tools', 'count']",
+      "error": null,
+      "response_body": {
+        "tools": [
+          {
+            "name": "get_business_pulse",
+            "description": "Get real-time business pulse metrics: users, workspaces, jobs, activity.",
+            "parameters": [],
+            "path": "/api/debug/insights/pulse",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_growth_metrics",
+            "description": "Get user and workspace growth over time.",
+            "parameters": [],
+            "path": "/api/debug/insights/growth",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_engagement_metrics",
+            "description": "Get user engagement metrics: login frequency, active rates.",
+            "parameters": [],
+            "path": "/api/debug/insights/engagement",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_feature_adoption",
+            "description": "Get feature adoption rates across workspaces.",
+            "parameters": [],
+            "path": "/api/debug/insights/feature-adoption",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_retention_cohorts",
+            "description": "Get weekly retention cohort data.",
+            "parameters": [],
+            "path": "/api/debug/insights/retention",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_unit_economics",
+            "description": "Get unit economics: cost per user, cost per workspace.",
+            "parameters": [],
+            "path": "/api/debug/insights/unit-economics",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_top_workspaces",
+            "description": "Get top workspaces by activity (job count).",
+            "parameters": [],
+            "path": "/api/debug/insights/top-workspaces",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_pipeline_health",
+            "description": "Get processing pipeline health: success rates, queue depths, throughput.",
+            "parameters": [],
+            "path": "/api/debug/insights/pipeline-health",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_cost_breakdown",
+            "description": "Get Azure cost breakdown by service.",
+            "parameters": [],
+            "path": "/api/debug/insights/cost-breakdown",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_active_users",
+            "description": "Get active users with activity metrics and login recency.",
+            "parameters": [],
+            "path": "/api/debug/insights/active-users",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_scaling_metrics",
+            "description": "Get scaling and capacity metrics: conversation growth, job throughput, knowledge accumulation.",
+            "parameters": [],
+            "path": "/api/debug/insights/scaling",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_error_timeline",
+            "description": "Get error count timeline grouped by service.",
+            "parameters": [],
+            "path": "/api/debug/errors/timeline",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_error_clusters",
+            "description": "Get top error clusters grouped by problem ID.",
+            "parameters": [],
+            "path": "/api/debug/errors/clusters",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_error_detail",
+            "description": "Get detailed info for a specific error by problem ID.",
+            "parameters": [],
+            "path": "/api/debug/errors/{error_id}",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_error_correlation",
+            "description": "Correlate an error with its full request trace.",
+            "parameters": [],
+            "path": "/api/debug/errors/correlate/{operation_id}",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_deploy_error_correlation",
+            "description": "Correlate error spikes with deployment events.",
+            "parameters": [],
+            "path": "/api/debug/errors/deploy-correlation",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_failed_jobs",
+            "description": "Get recent failed processing jobs.",
+            "parameters": [],
+            "path": "/api/debug/errors/failed-jobs",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_service_resources",
+            "description": "Get resource allocation and status for all services.",
+            "parameters": [],
+            "path": "/api/debug/scale/services",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_resource_quotas",
+            "description": "Get database resource quotas and usage.",
+            "parameters": [],
+            "path": "/api/debug/scale/quotas",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_scale_events",
+            "description": "Get auto-scale events from App Insights.",
+            "parameters": [],
+            "path": "/api/debug/scale/events",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_bottleneck_analysis",
+            "description": "Identify performance bottlenecks from slow requests and dependencies.",
+            "parameters": [],
+            "path": "/api/debug/scale/bottlenecks",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_database_performance",
+            "description": "Get database performance metrics: slow queries, table sizes, connections.",
+            "parameters": [],
+            "path": "/api/debug/scale/database",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_infra_topology",
+            "description": "Get full infrastructure topology: all services and their relationships.",
+            "parameters": [],
+            "path": "/api/debug/infra/topology",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "list_container_apps",
+            "description": "List all container apps with their status.",
+            "parameters": [],
+            "path": "/api/debug/infra/container-apps",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_container_apps_detailed",
+            "description": "Get all container apps with detailed info, revisions, and runtime metrics.",
+            "parameters": [],
+            "path": "/api/debug/infra/container-apps/detailed",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_container_app_detail",
+            "description": "Get detailed info for a specific container app.",
+            "parameters": [],
+            "path": "/api/debug/infra/container-apps/{app_name}",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_container_app_logs",
+            "description": "Get recent logs for a container app.",
+            "parameters": [],
+            "path": "/api/debug/infra/container-apps/{app_name}/logs",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_postgresql_status",
+            "description": "Get PostgreSQL database status and metrics.",
+            "parameters": [],
+            "path": "/api/debug/infra/postgresql",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_neo4j_status",
+            "description": "Get Neo4j graph database status, scaling metrics, and per-workspace breakdown.",
+            "parameters": [],
+            "path": "/api/debug/infra/neo4j",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_service_bus_status",
+            "description": "Get Azure Service Bus queues, metrics, and throughput.",
+            "parameters": [],
+            "path": "/api/debug/infra/service-bus",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_storage_status",
+            "description": "Get Azure Blob Storage status and statistics.",
+            "parameters": [],
+            "path": "/api/debug/infra/storage",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_openai_status",
+            "description": "Get Azure OpenAI usage metrics from App Insights.",
+            "parameters": [],
+            "path": "/api/debug/infra/openai",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_key_vault_status",
+            "description": "Get Key Vault access logs from App Insights.",
+            "parameters": [],
+            "path": "/api/debug/infra/key-vault",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_front_door_metrics",
+            "description": "Get Front Door request metrics from App Insights.",
+            "parameters": [],
+            "path": "/api/debug/infra/front-door",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_vnet_status",
+            "description": "Get VNet connectivity status from dependency telemetry.",
+            "parameters": [],
+            "path": "/api/debug/infra/vnet",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_app_insights_status",
+            "description": "Get App Insights telemetry overview.",
+            "parameters": [],
+            "path": "/api/debug/infra/app-insights",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_infra_costs",
+            "description": "Get daily infrastructure cost trend with resource-level breakdown and forecast.",
+            "parameters": [],
+            "path": "/api/debug/infra/costs",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_alerts_status",
+            "description": "Get Azure Monitor alert rules and recently fired alerts.",
+            "parameters": [],
+            "path": "/api/debug/infra/alerts",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_deployments",
+            "description": "Get deployment history across all container apps (revisions).",
+            "parameters": [],
+            "path": "/api/debug/infra/deployments",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_database_metrics",
+            "description": "Get comprehensive database metrics: counts, activity, health, cache, tables, queries.",
+            "parameters": [],
+            "path": "/api/debug/infra/database/metrics",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_llm_costs",
+            "description": "Get LLM usage costs from App Insights custom events (llm_request_complete).",
+            "parameters": [],
+            "path": "/api/debug/infra/llm/costs",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_llm_metrics",
+            "description": "Get Azure OpenAI metrics from App Insights dependency telemetry.",
+            "parameters": [],
+            "path": "/api/debug/infra/llm/metrics",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "execute_kql_query",
+            "description": "Execute a KQL query against App Insights.",
+            "parameters": [],
+            "path": "/api/debug/logs/query",
+            "method": "POST",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "list_saved_queries",
+            "description": "List all saved KQL queries.",
+            "parameters": [],
+            "path": "/api/debug/logs/saved-queries",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "save_kql_query",
+            "description": "Save a KQL query for reuse.",
+            "parameters": [],
+            "path": "/api/debug/logs/saved-queries",
+            "method": "POST",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "ai_generate_kql",
+            "description": "Generate a KQL query from natural language description.",
+            "parameters": [],
+            "path": "/api/debug/logs/ai-generate",
+            "method": "POST",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_request_trace",
+            "description": "Get full distributed trace for a request by operation ID.",
+            "parameters": [],
+            "path": "/api/debug/logs/trace/{operation_id}",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "list_workspaces",
+            "description": "List all workspaces with member counts, paginated.",
+            "parameters": [],
+            "path": "/api/debug/workspaces",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_workspace_detail",
+            "description": "Get detailed information for a specific workspace.",
+            "parameters": [],
+            "path": "/api/debug/workspaces/{workspace_id}",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_workspace_health",
+            "description": "Get health status for a specific workspace across all data stores.",
+            "parameters": [],
+            "path": "/api/debug/workspaces/{workspace_id}/health",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_workspace_jobs",
+            "description": "Get processing jobs for a workspace with optional status filter.",
+            "parameters": [],
+            "path": "/api/debug/workspaces/{workspace_id}/jobs",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_workspace_conversations",
+            "description": "Get external conversations linked to a workspace.",
+            "parameters": [],
+            "path": "/api/debug/workspaces/{workspace_id}/conversations",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_workspace_graph_stats",
+            "description": "Get knowledge graph statistics for a workspace.",
+            "parameters": [],
+            "path": "/api/debug/workspaces/{workspace_id}/graph-stats",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_health_score",
+            "description": "Get overall data health score across all data stores.",
+            "parameters": [],
+            "path": "/api/debug/health/score",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "check_data_consistency",
+            "description": "Check data consistency: orphaned records, broken references.",
+            "parameters": [],
+            "path": "/api/debug/health/consistency",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "find_orphaned_records",
+            "description": "Find orphaned records across all tables.",
+            "parameters": [],
+            "path": "/api/debug/health/orphans",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "check_encryption_status",
+            "description": "Check encryption status across data stores.",
+            "parameters": [],
+            "path": "/api/debug/health/encryption",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "run_health_check",
+            "description": "Run a comprehensive health check across all data stores.",
+            "parameters": [],
+            "path": "/api/debug/health/run-check",
+            "method": "POST",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "execute_sql_query",
+            "description": "Execute a read-only SQL query against PostgreSQL.",
+            "parameters": [],
+            "path": "/api/debug/queries/sql",
+            "method": "POST",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "execute_cypher_query",
+            "description": "Execute a read-only Cypher query against Neo4j.",
+            "parameters": [],
+            "path": "/api/debug/queries/cypher",
+            "method": "POST",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "whitelist_user",
+            "description": "Whitelist a user by email address.",
+            "parameters": [],
+            "path": "/api/debug/admin/whitelist-user",
+            "method": "POST",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "whitelist_organization",
+            "description": "Whitelist all users in an organization by domain.",
+            "parameters": [],
+            "path": "/api/debug/admin/whitelist-org",
+            "method": "POST",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "list_whitelisted",
+            "description": "List all whitelisted users.",
+            "parameters": [],
+            "path": "/api/debug/admin/whitelist",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "purge_queue",
+            "description": "Purge all messages from a Service Bus queue (active + dead-letter).",
+            "parameters": [],
+            "path": "/api/debug/admin/purge-queue",
+            "method": "POST",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "ai_chat",
+            "description": "Chat with AI assistant that can query all debug endpoints.",
+            "parameters": [],
+            "path": "/api/debug/ai/chat",
+            "method": "POST",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_api_performance",
+            "description": "Get per-endpoint latency distribution (P50/P95/P99), error rate, request volume.",
+            "parameters": [],
+            "path": "/api/debug/observability/api-performance",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_dependency_map",
+            "description": "Get service-to-service dependency graph with latency and failure rates.",
+            "parameters": [],
+            "path": "/api/debug/observability/dependency-map",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_error_hotspots",
+            "description": "Get which endpoints throw which errors \u2014 correlates exceptions to API requests.",
+            "parameters": [],
+            "path": "/api/debug/observability/error-hotspots",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_throughput_trends",
+            "description": "Get time-series of request volume, error count, and latency per service.",
+            "parameters": [],
+            "path": "/api/debug/observability/throughput-trends",
+            "method": "GET",
+            "suggested_viz": "table"
+          },
+          {
+            "name": "get_slo_status",
+            "description": "Compute SLO metrics: availability, latency, error budget.",
+            "parameters": [],
+            "path": "/api/debug/observability/slo-status",
+            "method": "GET",
+            "suggested_viz": "table"
+          }
+        ],
+        "count": 70
+      }
+    }
+  ]
+}

@@ -9,7 +9,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { BarChart } from '@/components/charts/BarChart';
 import { useDebugger } from '@/hooks/useDebugger';
 import { useDebuggerDashboardState } from '@/hooks/useDashboardState';
-import { formatNumber, cn, timeAgo } from '@/lib/utils';
+import { formatNumber, cn, timeAgo, timeRangeToParams } from '@/lib/utils';
 import {
   Activity,
   Users,
@@ -86,17 +86,20 @@ function DashboardContent() {
     availableRegions,
   } = useDebuggerDashboardState();
 
+  const hoursParams = timeRangeToParams(timeRange, 'hours');
+  const daysParams = timeRangeToParams(timeRange, 'days');
+
   const { data: pulse, isLoading: pulseLoading, refresh: refreshPulse } =
-    useDebugger<PulseMetrics>('/debug/insights/pulse', { timeRange }, { refreshInterval: 60000 });
+    useDebugger<PulseMetrics>('/debug/insights/pulse', undefined, { refreshInterval: 60000 });
 
   const { data: topWorkspaces, isLoading: wsLoading } =
-    useDebugger<TopWorkspace[]>('/debug/insights/top-workspaces', { timeRange, limit: '10' });
+    useDebugger<TopWorkspace[]>('/debug/insights/top-workspaces', { limit: '10' });
 
   const { data: pipeline, isLoading: pipeLoading } =
     useDebugger<PipelineStep[]>('/debug/insights/pipeline-health');
 
   const { data: costs, isLoading: costLoading } =
-    useDebugger<CostItem[]>('/debug/insights/cost-breakdown', { timeRange });
+    useDebugger<CostItem[]>('/debug/insights/cost-breakdown', daysParams);
 
   const isLoading = pulseLoading && !pulse;
   const [isRefreshing, setIsRefreshing] = useState(false);
