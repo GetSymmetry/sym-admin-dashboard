@@ -53,7 +53,13 @@ class DebuggerClient {
 
     if (!res.ok) {
       const error = await res.json().catch(() => ({ detail: res.statusText }));
-      throw new Error(error.detail || `HTTP ${res.status}`);
+      let message = `HTTP ${res.status}`;
+      if (typeof error.detail === "string") {
+        message = error.detail;
+      } else if (Array.isArray(error.detail)) {
+        message = error.detail.map((e: any) => e.msg || JSON.stringify(e)).join("; ");
+      }
+      throw new Error(message);
     }
 
     return res.json();
@@ -73,6 +79,10 @@ class DebuggerClient {
       method: "POST",
       body: body ? JSON.stringify(body) : undefined,
     });
+  }
+
+  async delete<T>(endpoint: string): Promise<DebugResponse<T>> {
+    return this.fetch<T>(endpoint, { method: "DELETE" });
   }
 }
 

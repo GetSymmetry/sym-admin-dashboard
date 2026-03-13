@@ -29,12 +29,14 @@ interface Message {
 }
 
 const EXAMPLE_PROMPTS = [
-  "What's the current system health? Show me an overview.",
-  "Show me API latency P95 by endpoint for the last 24h",
-  "Which workspaces have the most failed jobs?",
-  "Show LLM costs breakdown by model for the past week",
-  "How fast are conversations growing? When will we hit DB limits?",
-  "What's calling OpenAI the most?",
+  "Did the last deploy cause error spikes? Correlate deployment timeline with error rates",
+  "What's our cost per active user? Break down infra vs LLM spend",
+  "Which workspace is generating the most load? Show their jobs, graph size, and conversations",
+  "Find the slowest API endpoints, show what errors they throw, and trace one",
+  "Is backpressure building? Compare pipeline throughput with Service Bus queue depth",
+  "Show user retention by weekly cohort alongside feature adoption rates",
+  "Full system health: DB consistency, graph health, SLO status, and active alerts",
+  "Compare user growth rate with infrastructure costs — are we scaling efficiently?",
 ];
 
 /* ── Tool indicator icons ── */
@@ -234,8 +236,8 @@ function AIContent() {
                 What would you like to know?
               </h2>
               <p className="text-text-secondary text-center mb-8">
-                I can query PostgreSQL, Neo4j, App Insights, Service Bus, Container Apps, and Cost Management
-                to answer your questions and create charts.
+                Ask me to correlate across PostgreSQL, Neo4j, App Insights, Service Bus, Container Apps,
+                and Cost Management — I'll stitch together data from multiple sources and visualize it.
               </p>
 
               <div className="grid grid-cols-2 gap-3 w-full">
@@ -329,7 +331,7 @@ function AIContent() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Ask about system health, costs, errors, scaling, users..."
+              placeholder="Ask anything — correlate deployments with errors, trace slow endpoints, compare costs with growth..."
               className="w-full bg-surface-secondary border border-border rounded-xl px-4 py-3 pr-14 text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-blue focus:ring-2 focus:ring-brand-blue-light/50 resize-none transition-colors"
               rows={1}
               disabled={isLoading}
@@ -343,7 +345,7 @@ function AIContent() {
             </button>
           </form>
           <p className="text-center text-xs text-text-muted mt-3">
-            AI queries PostgreSQL, Neo4j, App Insights, Service Bus, Container Apps, and Cost Management to answer your questions
+            Queries 6 data sources with 55+ tools — correlates across PostgreSQL, Neo4j, App Insights, Service Bus, Container Apps, and Cost Management
           </p>
         </div>
       </main>
