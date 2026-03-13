@@ -1,91 +1,93 @@
 'use client';
 
 import { useState, Suspense } from 'react';
-import useSWR from 'swr';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 import { Card } from '@/components/ui/Card';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { cn, timeAgo } from '@/lib/utils';
-import { useDashboardState } from '@/hooks/useDashboardState';
+import { useDebugger } from '@/hooks/useDebugger';
+import { useDebuggerDashboardState } from '@/hooks/useDashboardState';
 import { Rocket, Server, GitCommit, Box, Layers, Clock } from 'lucide-react';
 
-const fetcher = (url: string) => fetch(url).then(res => res.json());
-
 interface RevisionDeployment {
-  appName: string;
-  displayName: string;
-  revisionName: string;
-  image: string;
-  imageTag: string;
-  createdTime: string;
-  runningState: string;
-  trafficWeight: number;
+  app_name: string;
+  revision_name: string;
+  created: string;
   active: boolean;
+  traffic_weight: number;
+  provisioning_state: string;
   replicas: number;
 }
 
+interface AppInfo {
+  name: string;
+  location: string;
+  provisioning_state: string;
+  running_status: string | null;
+  latest_revision: string;
+}
+
 interface DeploymentsData {
-  timestamp: string;
-  environment: string;
   deployments: RevisionDeployment[];
-  apps: Array<{
-    name: string;
-    displayName: string;
-    activeRevision: string;
-    status: string;
-    image: string;
-  }>;
+  apps: AppInfo[];
   summary: {
-    totalApps: number;
-    totalRevisions: number;
-    lastDeployment: string;
+    total_apps: number;
+    total_revisions: number;
+    last_deployment: string | null;
   };
 }
 
 function DeploymentsContent() {
   const [collapsed, setCollapsed] = useState(false);
   const [selectedApp, setSelectedApp] = useState<string>('all');
-  const { environment, timeRange, setEnvironment, setTimeRange } = useDashboardState();
-  const { data, isLoading, mutate } = useSWR<DeploymentsData>(
-    `/api/deployments?env=${environment}`,
-    fetcher,
+  const {
+    region,
+    setRegion,
+    timeRange,
+    setTimeRange,
+    availableRegions,
+  } = useDebuggerDashboardState();
+  const { data, metadata, isLoading, refresh } = useDebugger<DeploymentsData>(
+    '/debug/infra/deployments',
+    undefined,
     { refreshInterval: 120000 }
   );
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await mutate();
+    await refresh();
     setTimeout(() => setIsRefreshing(false), 1000);
   };
 
   // Filter deployments by selected app
   const filteredDeployments = (data?.deployments || []).filter(
-    d => selectedApp === 'all' || d.appName === selectedApp
+    d => selectedApp === 'all' || d.app_name === selectedApp
   );
 
   // Unique app names for filter
-  const appNames = [...new Set((data?.deployments || []).map(d => d.appName))];
+  const appNames = [...new Set((data?.deployments || []).map(d => d.app_name))];
 
   return (
     <div className="flex h-screen bg-surface-secondary">
       <Sidebar
         collapsed={collapsed}
         onToggle={() => setCollapsed(!collapsed)}
-        environment={environment}
-        onEnvironmentChange={setEnvironment}
+        environment="prod"
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header
           title="Deployments"
-          environment={environment}
-          lastUpdated={data?.timestamp ? timeAgo(data.timestamp) : undefined}
+          environment="prod"
           onRefresh={handleRefresh}
           isRefreshing={isRefreshing || isLoading}
           timeRange={timeRange}
           onTimeRangeChange={setTimeRange}
+          region={region}
+          onRegionChange={setRegion}
+          availableRegions={availableRegions}
         />
 
         <main className="flex-1 overflow-auto p-6 space-y-6">
@@ -102,21 +104,21 @@ function DeploymentsContent() {
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <MetricCard
                   title="Container Apps"
-                  value={data?.summary?.totalApps || 0}
+                  value={data?.summary?.total_apps || 0}
                   icon={Server}
                   iconColor="text-brand-blue"
                 />
                 <MetricCard
                   title="Total Revisions"
-                  value={data?.summary?.totalRevisions || 0}
+                  value={data?.summary?.total_revisions || 0}
                   icon={Layers}
                   iconColor="text-info"
                 />
                 <MetricCard
                   title="Last Deployment"
                   value={
-                    data?.summary?.lastDeployment && data.summary.lastDeployment !== 'unknown'
-                      ? timeAgo(data.summary.lastDeployment)
+                    data?.summary?.last_deployment
+                      ? timeAgo(data.summary.last_deployment)
                       : 'Unknown'
                   }
                   format="raw"
@@ -125,16 +127,16 @@ function DeploymentsContent() {
                 />
                 <MetricCard
                   title="Environment"
-                  value={environment.toUpperCase()}
+                  value="PROD"
                   format="raw"
                   icon={Box}
-                  iconColor={environment === 'prod' ? 'text-status-error' : 'text-status-success'}
+                  iconColor="text-status-error"
                 />
               </div>
 
               {/* Current Active Images */}
               {data?.apps && data.apps.length > 0 && (
-                <Card title="Active Container Images" subtitle="Currently running images per service">
+                <Card title="Active Container Apps" subtitle="Currently running services">
                   <div className="space-y-3">
                     {data.apps.map((app) => (
                       <div
@@ -146,13 +148,13 @@ function DeploymentsContent() {
                             <Server size={16} className="text-brand-blue" />
                           </div>
                           <div className="min-w-0">
-                            <p className="text-body-small font-medium text-text-primary">{app.displayName}</p>
-                            <p className="text-body-xs font-mono text-text-muted truncate">{app.image}</p>
+                            <p className="text-body-small font-medium text-text-primary">{app.name}</p>
+                            <p className="text-body-xs font-mono text-text-muted truncate">{app.latest_revision}</p>
                           </div>
                         </div>
                         <StatusBadge
-                          status={app.status === 'Succeeded' ? 'healthy' : app.status}
-                          pulse={app.status === 'Succeeded'}
+                          status={app.provisioning_state === 'Succeeded' ? 'healthy' : app.provisioning_state}
+                          pulse={app.provisioning_state === 'Succeeded'}
                         />
                       </div>
                     ))}
@@ -188,7 +190,7 @@ function DeploymentsContent() {
                             : 'text-text-muted hover:bg-surface-tertiary'
                         )}
                       >
-                        {(data?.deployments || []).find(d => d.appName === name)?.displayName || name}
+                        {name}
                       </button>
                     ))}
                   </div>
@@ -198,7 +200,7 @@ function DeploymentsContent() {
                   <div className="space-y-2">
                     {filteredDeployments.map((dep) => (
                       <div
-                        key={dep.revisionName}
+                        key={dep.revision_name}
                         className={cn(
                           'flex items-center justify-between p-3 rounded-lg border transition-colors',
                           dep.active
@@ -214,31 +216,31 @@ function DeploymentsContent() {
                           <div className="min-w-0">
                             <div className="flex items-center gap-2">
                               <span className="text-body-small font-medium text-text-primary">
-                                {dep.displayName}
+                                {dep.app_name}
                               </span>
                               {dep.active && (
                                 <span className="text-body-xs text-status-success font-medium">ACTIVE</span>
                               )}
-                              {dep.trafficWeight > 0 && (
+                              {dep.traffic_weight > 0 && (
                                 <span className="text-body-xs text-brand-blue font-medium">
-                                  {dep.trafficWeight}% traffic
+                                  {dep.traffic_weight}% traffic
                                 </span>
                               )}
                             </div>
                             <div className="flex items-center gap-2 mt-0.5">
                               <GitCommit size={12} className="text-text-muted shrink-0" />
                               <span className="text-body-xs font-mono text-text-muted truncate">
-                                {dep.imageTag}
+                                {dep.revision_name}
                               </span>
                             </div>
                           </div>
                         </div>
                         <div className="flex items-center gap-3 shrink-0">
-                          <StatusBadge status={dep.runningState} />
+                          <StatusBadge status={dep.provisioning_state} />
                           <div className="flex items-center gap-1 text-body-xs text-text-muted">
                             <Clock size={12} />
                             <span>
-                              {dep.createdTime !== 'unknown' ? timeAgo(dep.createdTime) : 'unknown'}
+                              {dep.created ? timeAgo(dep.created) : 'unknown'}
                             </span>
                           </div>
                         </div>

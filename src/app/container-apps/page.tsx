@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, Suspense } from 'react';
-import useSWR from 'swr';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 import { Card } from '@/components/ui/Card';
@@ -9,25 +8,65 @@ import { MetricCard } from '@/components/dashboard/MetricCard';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Gauge } from '@/components/ui/Gauge';
 import { cn, timeAgo, formatBytes } from '@/lib/utils';
-import { useDashboardState } from '@/hooks/useDashboardState';
+import { useDebugger } from '@/hooks/useDebugger';
+import { useDebuggerDashboardState } from '@/hooks/useDashboardState';
 import { Box, Cpu, MemoryStick, RotateCcw, Activity, Layers } from 'lucide-react';
-import type { ContainerAppsResponse } from '@/types/metrics';
 
-const fetcher = (url: string) => fetch(url).then(res => res.json());
+/* ── Types for debugger /debug/infra/container-apps/detailed response ── */
+
+interface ContainerAppRevision {
+  name: string;
+  created: string;
+  active: boolean;
+  traffic_weight: number;
+  provisioning_state: string;
+  replicas: number;
+}
+
+interface ContainerAppMetrics {
+  cpu_millicores: number | null;
+  memory_mb: number | null;
+  replicas: number | null;
+  restarts: number | null;
+}
+
+interface ContainerAppDetail {
+  name: string;
+  location: string;
+  provisioning_state: string;
+  running_status: string | null;
+  latest_revision: string;
+  min_replicas: number;
+  max_replicas: number;
+  image: string;
+  cpu: number;
+  memory: string;
+  recent_revisions: ContainerAppRevision[];
+  metrics?: ContainerAppMetrics;
+}
+
+interface ContainerAppsData {
+  apps: ContainerAppDetail[];
+  summary: {
+    total_apps: number;
+    running_apps: number;
+    total_replicas: number;
+  };
+}
 
 function ContainerAppsContent() {
   const [collapsed, setCollapsed] = useState(false);
-  const { environment, timeRange, setEnvironment, setTimeRange } = useDashboardState();
-  const { data, isLoading, mutate } = useSWR<ContainerAppsResponse>(
-    `/api/container-apps?env=${environment}&range=${timeRange}`,
-    fetcher,
+  const { region, setRegion, timeRange, setTimeRange, availableRegions } = useDebuggerDashboardState();
+  const { data, metadata, error, isLoading, refresh } = useDebugger<ContainerAppsData>(
+    '/debug/infra/container-apps/detailed',
+    undefined,
     { refreshInterval: 30000 }
   );
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await mutate();
+    await refresh();
     setTimeout(() => setIsRefreshing(false), 1000);
   };
 
@@ -36,18 +75,20 @@ function ContainerAppsContent() {
       <Sidebar
         collapsed={collapsed}
         onToggle={() => setCollapsed(!collapsed)}
-        environment={environment}
-        onEnvironmentChange={setEnvironment}
+        environment="prod"
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header
           title="Container Apps"
-          environment={environment}
-          lastUpdated={data?.timestamp ? timeAgo(data.timestamp) : undefined}
+          environment="prod"
+          lastUpdated={metadata?.timestamp ? timeAgo(metadata.timestamp) : undefined}
           onRefresh={handleRefresh}
           isRefreshing={isRefreshing || isLoading}
           timeRange={timeRange}
           onTimeRangeChange={setTimeRange}
+          region={region}
+          onRegionChange={setRegion}
+          availableRegions={availableRegions}
         />
 
         <main className="flex-1 overflow-auto p-6 space-y-6">
@@ -64,31 +105,21 @@ function ContainerAppsContent() {
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <MetricCard
                   title="Container Apps"
-                  value={data?.summary?.totalApps || 0}
+                  value={data?.summary?.total_apps || 0}
                   icon={Box}
                   iconColor="text-brand-blue"
                 />
                 <MetricCard
                   title="Running"
-                  value={data?.summary?.runningApps || 0}
+                  value={data?.summary?.running_apps || 0}
                   icon={Activity}
                   iconColor="text-status-success"
                 />
                 <MetricCard
                   title="Total Replicas"
-                  value={data?.summary?.totalReplicas || 0}
+                  value={data?.summary?.total_replicas || 0}
                   icon={Layers}
                   iconColor="text-info"
-                />
-                <MetricCard
-                  title="Total Restarts"
-                  value={data?.summary?.totalRestarts || 0}
-                  icon={RotateCcw}
-                  iconColor={
-                    (data?.summary?.totalRestarts || 0) > 0
-                      ? 'text-status-warning'
-                      : 'text-status-success'
-                  }
                 />
               </div>
 
@@ -96,74 +127,34 @@ function ContainerAppsContent() {
               {data?.apps?.map((app) => (
                 <Card
                   key={app.name}
-                  title={app.displayName}
-                  subtitle={app.name}
+                  title={app.name}
+                  subtitle={app.location}
                   action={
                     <StatusBadge
-                      status={app.provisioningState === 'Succeeded' ? 'healthy' : app.provisioningState}
-                      pulse={app.provisioningState === 'Succeeded'}
+                      status={app.provisioning_state === 'Succeeded' ? 'healthy' : app.provisioning_state}
+                      pulse={app.provisioning_state === 'Succeeded'}
                     />
                   }
                 >
-                  {/* Metrics Row */}
-                  <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-                    <div className="text-center">
-                      <Gauge
-                        value={Math.min(app.metrics.cpuUsage, 100)}
-                        label="CPU"
-                        size={80}
-                        thresholds={[
-                          { value: 80, color: 'rgb(239 68 68)' },
-                          { value: 50, color: 'rgb(245 158 11)' },
-                          { value: 0, color: 'rgb(34 197 94)' },
-                        ]}
-                      />
-                      <p className="text-body-xs text-text-muted mt-1">
-                        {app.metrics.cpuUsage.toFixed(1)}% of {app.cpu} vCPU
-                      </p>
-                    </div>
-                    <div className="text-center">
-                      <Gauge
-                        value={Math.min(
-                          app.memory
-                            ? (app.metrics.memoryUsage / (parseFloat(app.memory) * 1024)) * 100
-                            : 0,
-                          100
-                        )}
-                        label="Memory"
-                        size={80}
-                        thresholds={[
-                          { value: 85, color: 'rgb(239 68 68)' },
-                          { value: 60, color: 'rgb(245 158 11)' },
-                          { value: 0, color: 'rgb(34 197 94)' },
-                        ]}
-                      />
-                      <p className="text-body-xs text-text-muted mt-1">
-                        {formatBytes(app.metrics.memoryUsage * 1024 * 1024)} / {app.memory}
-                      </p>
+                  {/* Info Row */}
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="text-2xl font-bold font-mono text-text-primary">
+                        {app.cpu}
+                      </div>
+                      <p className="text-body-xs text-text-muted">vCPU</p>
                     </div>
                     <div className="flex flex-col items-center justify-center">
                       <div className="text-2xl font-bold font-mono text-text-primary">
-                        {Math.round(app.metrics.replicaCount)}
+                        {app.memory}
                       </div>
-                      <p className="text-body-xs text-text-muted">
-                        Replicas ({app.minReplicas}-{app.maxReplicas})
-                      </p>
-                    </div>
-                    <div className="flex flex-col items-center justify-center">
-                      <div className={cn(
-                        'text-2xl font-bold font-mono',
-                        app.metrics.restartCount > 0 ? 'text-status-warning' : 'text-status-success'
-                      )}>
-                        {app.metrics.restartCount}
-                      </div>
-                      <p className="text-body-xs text-text-muted">Restarts</p>
+                      <p className="text-body-xs text-text-muted">Memory</p>
                     </div>
                     <div className="flex flex-col items-center justify-center">
                       <div className="text-2xl font-bold font-mono text-text-primary">
-                        {app.metrics.requestCount}
+                        {app.min_replicas}-{app.max_replicas}
                       </div>
-                      <p className="text-body-xs text-text-muted">Requests</p>
+                      <p className="text-body-xs text-text-muted">Replica Range</p>
                     </div>
                   </div>
 
@@ -174,19 +165,43 @@ function ContainerAppsContent() {
                       <p className="font-mono text-body-xs text-text-primary break-all">{app.image}</p>
                     </div>
                     <div className="p-3 bg-surface-tertiary rounded-lg">
-                      <p className="text-text-muted mb-1">Active Revision</p>
-                      <p className="font-mono text-body-xs text-text-primary">{app.activeRevision}</p>
+                      <p className="text-text-muted mb-1">Latest Revision</p>
+                      <p className="font-mono text-body-xs text-text-primary">{app.latest_revision}</p>
                     </div>
                   </div>
 
+                  {/* Runtime Metrics */}
+                  {app.metrics && Object.keys(app.metrics).length > 0 && (
+                    <div className="grid grid-cols-4 gap-3 mt-4 pt-4 border-t border-border-subtle">
+                      <div>
+                        <div className="text-xs text-text-muted">CPU</div>
+                        <div className="text-sm font-semibold text-text-primary">{app.metrics.cpu_millicores ?? '—'}m</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-text-muted">Memory</div>
+                        <div className="text-sm font-semibold text-text-primary">{app.metrics.memory_mb != null ? `${app.metrics.memory_mb.toFixed(0)} MB` : '—'}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-text-muted">Replicas</div>
+                        <div className="text-sm font-semibold text-text-primary">{app.metrics.replicas ?? '—'}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-text-muted">Restarts</div>
+                        <div className={`text-sm font-semibold ${(app.metrics.restarts || 0) > 0 ? 'text-status-warning' : 'text-text-primary'}`}>
+                          {app.metrics.restarts ?? 0}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Recent Revisions */}
-                  {app.recentRevisions?.length > 0 && (
+                  {app.recent_revisions?.length > 0 && (
                     <div className="mt-4">
                       <h4 className="text-body-small font-medium text-text-secondary mb-2">
                         Recent Revisions
                       </h4>
                       <div className="space-y-2">
-                        {app.recentRevisions.map((rev) => (
+                        {app.recent_revisions.map((rev) => (
                           <div
                             key={rev.name}
                             className={cn(
@@ -202,14 +217,17 @@ function ContainerAppsContent() {
                               <span className="font-mono text-text-primary">{rev.name}</span>
                             </div>
                             <div className="flex items-center gap-4">
-                              <StatusBadge status={rev.runningState} />
-                              {rev.trafficWeight > 0 && (
+                              <StatusBadge status={rev.provisioning_state} />
+                              {rev.traffic_weight > 0 && (
                                 <span className="text-brand-blue font-medium">
-                                  {rev.trafficWeight}% traffic
+                                  {rev.traffic_weight}% traffic
                                 </span>
                               )}
                               <span className="text-text-muted">
-                                {rev.createdTime !== 'unknown' ? timeAgo(rev.createdTime) : 'unknown'}
+                                {rev.replicas} replica{rev.replicas !== 1 ? 's' : ''}
+                              </span>
+                              <span className="text-text-muted">
+                                {rev.created !== 'unknown' ? timeAgo(rev.created) : 'unknown'}
                               </span>
                             </div>
                           </div>
@@ -224,9 +242,9 @@ function ContainerAppsContent() {
                 <Card>
                   <div className="text-center py-8 text-text-muted">
                     <Box size={48} className="mx-auto mb-3 opacity-30" />
-                    <p>No container apps found in {environment.toUpperCase()} environment.</p>
+                    <p>No container apps found.</p>
                     <p className="text-body-xs mt-1">
-                      Ensure the service principal has Reader access to the resource group.
+                      Ensure the debugger service has access to the infrastructure resources.
                     </p>
                   </div>
                 </Card>

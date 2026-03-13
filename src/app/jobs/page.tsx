@@ -1,45 +1,95 @@
 'use client';
 
-import { useState, Suspense } from 'react';
-import useSWR from 'swr';
+import { useState, useMemo, Suspense } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 import { Card } from '@/components/ui/Card';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { QueueStatus } from '@/components/dashboard/QueueStatus';
 import { BarChart } from '@/components/charts/BarChart';
-import { cn, timeAgo } from '@/lib/utils';
-import { useDashboardState } from '@/hooks/useDashboardState';
+import { cn } from '@/lib/utils';
+import { useDebugger } from '@/hooks/useDebugger';
+import { useDebuggerDashboardState } from '@/hooks/useDashboardState';
 import { Cpu, CheckCircle, XCircle, Clock, Play, Inbox, AlertTriangle } from 'lucide-react';
 
-const fetcher = (url: string) => fetch(url).then(res => res.json());
+/* ── Response types from debugger ── */
+
+interface PipelineJob {
+  job_type: string;
+  total: number;
+  completed: number;
+  failed: number;
+  processing: number;
+  pending: number;
+  avg_duration_secs: number | null;
+}
+
+interface ServiceBusData {
+  queues: Array<{ name: string; status: string }>;
+  metrics: Array<{
+    name: string;
+    active_message_count: number;
+    dead_letter_message_count: number;
+    scheduled_message_count: number;
+    total_message_count: number;
+    size_in_bytes: number;
+  }>;
+}
 
 function JobsContent() {
   const [collapsed, setCollapsed] = useState(false);
-  const { environment, timeRange, setEnvironment, setTimeRange } = useDashboardState();
-  
-  const { data: metricsData, isLoading: metricsLoading, mutate: mutateMetrics } = useSWR(
-    `/api/metrics?env=${environment}&range=${timeRange}`,
-    fetcher,
-    { refreshInterval: 30000 }
-  );
-  
-  const { data: dbData, isLoading: dbLoading, mutate: mutateDb } = useSWR(
-    `/api/database?env=${environment}&range=${timeRange}`,
-    fetcher,
-    { refreshInterval: 60000 }
-  );
-  
+  const {
+    region,
+    setRegion,
+    timeRange,
+    setTimeRange,
+    availableRegions,
+  } = useDebuggerDashboardState();
+
+  const { data: pipelineData, isLoading: pipelineLoading, refresh: refreshPipeline } =
+    useDebugger<PipelineJob[]>('/debug/insights/pipeline-health', undefined, { refreshInterval: 30000 });
+
+  const { data: sbData, isLoading: sbLoading, refresh: refreshSb } =
+    useDebugger<ServiceBusData>('/debug/infra/service-bus', undefined, { refreshInterval: 30000 });
+
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await Promise.all([mutateMetrics(), mutateDb()]);
+    await Promise.all([refreshPipeline(), refreshSb()]);
     setTimeout(() => setIsRefreshing(false), 1000);
   };
 
-  const isLoading = metricsLoading || dbLoading;
-  const jobs = dbData?.jobs || { total: 0, completed: 0, failed: 0, processing: 0, pending: 0 };
+  // Aggregate job counts across all job types
+  const jobs = useMemo(() => {
+    if (!pipelineData || !Array.isArray(pipelineData)) {
+      return { total: 0, completed: 0, failed: 0, processing: 0, pending: 0 };
+    }
+    return pipelineData.reduce(
+      (acc, j) => ({
+        total: acc.total + (j.total || 0),
+        completed: acc.completed + (j.completed || 0),
+        failed: acc.failed + (j.failed || 0),
+        processing: acc.processing + (j.processing || 0),
+        pending: acc.pending + (j.pending || 0),
+      }),
+      { total: 0, completed: 0, failed: 0, processing: 0, pending: 0 }
+    );
+  }, [pipelineData]);
+
+  // Map service bus metrics to QueueStatus shape
+  const queues = useMemo(() => {
+    if (!sbData?.metrics) return [];
+    return sbData.metrics.map((m) => ({
+      name: m.name,
+      active: m.active_message_count,
+      deadLetter: m.dead_letter_message_count,
+    }));
+  }, [sbData]);
+
+  const totalDeadLetters = queues.reduce((sum, q) => sum + q.deadLetter, 0);
+
+  const isLoading = pipelineLoading || sbLoading;
   const successRate = jobs.total > 0 ? ((jobs.completed / jobs.total) * 100) : 100;
 
   return (
@@ -47,23 +97,24 @@ function JobsContent() {
       <Sidebar
         collapsed={collapsed}
         onToggle={() => setCollapsed(!collapsed)}
-        environment={environment}
-        onEnvironmentChange={setEnvironment}
+        environment="prod"
       />
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header
           title="Jobs & Queues"
-          environment={environment}
-          lastUpdated={dbData?.timestamp ? timeAgo(dbData.timestamp) : undefined}
+          environment="prod"
           onRefresh={handleRefresh}
           isRefreshing={isRefreshing || isLoading}
           timeRange={timeRange}
           onTimeRangeChange={setTimeRange}
+          region={region}
+          onRegionChange={setRegion}
+          availableRegions={availableRegions}
         />
 
         <main className="flex-1 overflow-auto p-6 space-y-6">
-          {isLoading && !dbData ? (
+          {isLoading && !pipelineData ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
                 <div className="w-12 h-12 border-4 border-brand-blue/30 border-t-brand-blue rounded-full animate-spin mx-auto mb-4" />
@@ -130,7 +181,7 @@ function JobsContent() {
                   />
                 </Card>
 
-                <QueueStatus queues={metricsData?.queues || []} />
+                <QueueStatus queues={queues} />
               </div>
 
               {/* Job Status Details */}
@@ -176,16 +227,16 @@ function JobsContent() {
                 title="Message Queue Status"
                 subtitle="Service Bus queues"
                 action={
-                  metricsData?.overview?.deadLetters > 0 && (
+                  totalDeadLetters > 0 && (
                     <div className="flex items-center gap-1.5 text-error text-sm">
                       <AlertTriangle size={14} />
-                      {metricsData.overview.deadLetters} dead letters
+                      {totalDeadLetters} dead letters
                     </div>
                   )
                 }
               >
                 <div className="space-y-3">
-                  {metricsData?.queues?.map((queue: { name: string; active: number; deadLetter: number }, index: number) => (
+                  {queues.length > 0 ? queues.map((queue, index) => (
                     <div
                       key={index}
                       className={cn(
@@ -225,7 +276,7 @@ function JobsContent() {
                         )}
                       </div>
                     </div>
-                  )) || (
+                  )) : (
                     <p className="text-text-muted text-center py-8">No queue data available</p>
                   )}
                 </div>

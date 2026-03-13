@@ -5,27 +5,109 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { DynamicUI } from '@/components/ai/DynamicUI';
 import { useDebuggerDashboardState } from '@/hooks/useDashboardState';
 import { debuggerClient } from '@/lib/api/client';
-import { Sparkles, Send, User, MessageCircle } from 'lucide-react';
+import { Sparkles, Send, User, MessageCircle, Database, Globe, Cpu, Clock } from 'lucide-react';
 
 /* ── Types ── */
+
+interface ToolCall {
+  name: string;
+  arguments?: Record<string, unknown>;
+  duration_ms?: number;
+  success?: boolean;
+}
 
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   ui?: unknown[];
+  toolsCalled?: ToolCall[];
+  model?: string;
+  rounds?: number;
   timestamp: Date;
   isLoading?: boolean;
 }
 
 const EXAMPLE_PROMPTS = [
-  "Show me users without any knowledge units or conversations",
-  "What are the error trends over the last 7 days?",
-  "Show LLM costs breakdown by day for the past week",
-  "List all failed jobs with their error messages",
-  "How many workspaces does each organization have?",
-  "What's the Service Bus queue status?",
+  "What's the current system health? Show me an overview.",
+  "Show me API latency P95 by endpoint for the last 24h",
+  "Which workspaces have the most failed jobs?",
+  "Show LLM costs breakdown by model for the past week",
+  "How fast are conversations growing? When will we hit DB limits?",
+  "What's calling OpenAI the most?",
 ];
+
+/* ── Tool indicator icons ── */
+
+function getToolIcon(name: string) {
+  if (name.includes('postgresql') || name.includes('sql') || name.includes('database') || name.includes('active_users') || name.includes('scaling'))
+    return <Database className="w-3 h-3" />;
+  if (name.includes('neo4j') || name.includes('graph'))
+    return <Globe className="w-3 h-3" />;
+  if (name.includes('container') || name.includes('service_bus') || name.includes('infra'))
+    return <Cpu className="w-3 h-3" />;
+  return <Database className="w-3 h-3" />;
+}
+
+function getToolLabel(name: string): string {
+  const labels: Record<string, string> = {
+    get_neo4j_status: 'Neo4j',
+    get_postgresql_status: 'PostgreSQL',
+    get_database_metrics: 'Database Metrics',
+    get_service_bus_status: 'Service Bus',
+    get_container_apps_detailed: 'Container Apps',
+    get_infra_costs: 'Costs',
+    get_llm_costs: 'LLM Costs',
+    get_llm_metrics: 'LLM Metrics',
+    get_business_pulse: 'Business Pulse',
+    get_growth_metrics: 'Growth',
+    get_engagement_metrics: 'Engagement',
+    get_top_workspaces: 'Top Workspaces',
+    get_pipeline_health: 'Pipeline',
+    get_active_users: 'Active Users',
+    get_scaling_metrics: 'Scaling',
+    get_api_performance: 'API Performance',
+    get_dependency_map: 'Dependencies',
+    get_error_hotspots: 'Error Hotspots',
+    get_throughput_trends: 'Throughput',
+    get_slo_status: 'SLO Status',
+    get_alerts_status: 'Alerts',
+    get_error_timeline: 'Error Timeline',
+    execute_sql: 'SQL Query',
+    execute_cypher: 'Cypher Query',
+    execute_kql: 'KQL Query',
+  };
+  return labels[name] || name.replace(/^get_/, '').replace(/_/g, ' ');
+}
+
+/* ── Tool Chips ── */
+
+function ToolChips({ tools }: { tools: ToolCall[] }) {
+  if (!tools || tools.length === 0) return null;
+  return (
+    <div className="flex flex-wrap gap-1.5 mb-2">
+      {tools.map((tool, i) => (
+        <span
+          key={i}
+          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+            tool.success === false
+              ? 'bg-red-50 text-red-700 border border-red-200'
+              : 'bg-blue-50 text-blue-700 border border-blue-200'
+          }`}
+        >
+          {getToolIcon(tool.name)}
+          {getToolLabel(tool.name)}
+          {tool.duration_ms !== undefined && (
+            <span className="text-blue-400 ml-0.5 flex items-center gap-0.5">
+              <Clock className="w-2.5 h-2.5" />
+              {tool.duration_ms < 1000 ? `${tool.duration_ms}ms` : `${(tool.duration_ms / 1000).toFixed(1)}s`}
+            </span>
+          )}
+        </span>
+      ))}
+    </div>
+  );
+}
 
 /* ── Content ── */
 
@@ -73,6 +155,9 @@ function AIContent() {
       const response = await debuggerClient.post<{
         message: string;
         ui?: unknown[];
+        tools_called?: ToolCall[];
+        model?: string;
+        rounds?: number;
       }>('/debug/ai/chat', {
         messages: [...messages, userMessage].map((m) => ({
           role: m.role,
@@ -80,11 +165,15 @@ function AIContent() {
         })),
       });
 
+      const data = response.data;
       const assistantMessage: Message = {
         id: (Date.now() + 2).toString(),
         role: 'assistant',
-        content: response.data?.message || '',
-        ui: response.data?.ui || [],
+        content: data?.message || '',
+        ui: data?.ui || [],
+        toolsCalled: data?.tools_called || [],
+        model: data?.model,
+        rounds: data?.rounds,
         timestamp: new Date(),
       };
 
@@ -128,7 +217,7 @@ function AIContent() {
             <div>
               <h1 className="text-xl font-semibold text-text-primary">AI Assistant</h1>
               <p className="text-sm text-text-muted">
-                Ask questions about your data in natural language
+                Query infrastructure, analyze data, and generate visualizations
               </p>
             </div>
           </div>
@@ -145,8 +234,8 @@ function AIContent() {
                 What would you like to know?
               </h2>
               <p className="text-text-secondary text-center mb-8">
-                I can query your database, analyze logs, check LLM usage, and
-                create visualizations.
+                I can query PostgreSQL, Neo4j, App Insights, Service Bus, Container Apps, and Cost Management
+                to answer your questions and create charts.
               </p>
 
               <div className="grid grid-cols-2 gap-3 w-full">
@@ -190,10 +279,15 @@ function AIContent() {
                           <span className="w-2 h-2 bg-brand-blue rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
                           <span className="w-2 h-2 bg-brand-blue rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                         </div>
-                        <span className="text-sm">Thinking...</span>
+                        <span className="text-sm">Querying data sources...</span>
                       </div>
                     ) : (
                       <>
+                        {/* Tool execution indicators */}
+                        {message.toolsCalled && message.toolsCalled.length > 0 && (
+                          <ToolChips tools={message.toolsCalled} />
+                        )}
+
                         {message.content && (
                           message.role === 'user' ? (
                             <div className="bg-brand-blue text-white rounded-2xl rounded-br-sm px-4 py-3">
@@ -235,7 +329,7 @@ function AIContent() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Ask about users, workspaces, errors, LLM usage..."
+              placeholder="Ask about system health, costs, errors, scaling, users..."
               className="w-full bg-surface-secondary border border-border rounded-xl px-4 py-3 pr-14 text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-blue focus:ring-2 focus:ring-brand-blue-light/50 resize-none transition-colors"
               rows={1}
               disabled={isLoading}
@@ -249,7 +343,7 @@ function AIContent() {
             </button>
           </form>
           <p className="text-center text-xs text-text-muted mt-3">
-            AI can query PostgreSQL, Neo4j, App Insights, and Azure metrics to answer your questions
+            AI queries PostgreSQL, Neo4j, App Insights, Service Bus, Container Apps, and Cost Management to answer your questions
           </p>
         </div>
       </main>

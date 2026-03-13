@@ -9,7 +9,7 @@ import { AreaChart } from '@/components/charts/AreaChart';
 import { BarChart } from '@/components/charts/BarChart';
 import { useDebugger } from '@/hooks/useDebugger';
 import { useDebuggerDashboardState } from '@/hooks/useDashboardState';
-import { formatCurrency, formatNumber } from '@/lib/utils';
+import { cn, formatCurrency, formatNumber, timeAgo } from '@/lib/utils';
 import {
   TrendingUp,
   Users,
@@ -48,6 +48,14 @@ interface UnitEconomics {
   cost_per_workspace: number;
   total_users: number;
   total_workspaces: number;
+}
+
+interface ActiveUser {
+  name: string;
+  email: string;
+  last_login: string;
+  jobs_30d: number;
+  conversations_30d: number;
 }
 
 /* ── Skeleton ── */
@@ -95,6 +103,9 @@ function InsightsContent() {
 
   const { data: economics, isLoading: econLoading } =
     useDebugger<UnitEconomics>('/debug/insights/unit-economics', { timeRange });
+
+  const { data: activeUsers, isLoading: usersLoading } =
+    useDebugger<ActiveUser[]>('/debug/insights/active-users', undefined, { refreshInterval: 60000 });
 
   const isLoading = growthLoading && !growth;
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -266,6 +277,51 @@ function InsightsContent() {
                   </div>
                 ) : (
                   <p className="text-text-muted text-center py-8">No economics data</p>
+                )}
+              </Card>
+
+              {/* Active Users */}
+              <Card title="Active Users" subtitle="User activity overview">
+                {usersLoading && !activeUsers ? (
+                  <p className="text-text-muted text-center py-8">Loading active users...</p>
+                ) : activeUsers && activeUsers.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-border-subtle">
+                          <th className="text-left py-2 px-3 text-text-muted font-medium">Name</th>
+                          <th className="text-left py-2 px-3 text-text-muted font-medium">Email</th>
+                          <th className="text-left py-2 px-3 text-text-muted font-medium">Last Login</th>
+                          <th className="text-right py-2 px-3 text-text-muted font-medium">Jobs (30d)</th>
+                          <th className="text-right py-2 px-3 text-text-muted font-medium">Conversations (30d)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {activeUsers.map((user, i) => {
+                          const loginDate = new Date(user.last_login);
+                          const daysSinceLogin = (Date.now() - loginDate.getTime()) / (1000 * 60 * 60 * 24);
+                          const loginColor = daysSinceLogin < 7
+                            ? 'text-status-success'
+                            : daysSinceLogin < 30
+                              ? 'text-status-warning'
+                              : 'text-status-error';
+                          return (
+                            <tr key={i} className="border-b border-border-subtle/50">
+                              <td className="py-2 px-3 text-text-primary font-medium">{user.name}</td>
+                              <td className="py-2 px-3 text-text-secondary text-xs">{user.email}</td>
+                              <td className={cn('py-2 px-3 font-mono text-xs', loginColor)}>
+                                {timeAgo(user.last_login)}
+                              </td>
+                              <td className="py-2 px-3 text-right text-text-primary font-mono">{user.jobs_30d}</td>
+                              <td className="py-2 px-3 text-right text-text-primary font-mono">{user.conversations_30d}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="text-text-muted text-center py-8">No active user data available</p>
                 )}
               </Card>
             </>

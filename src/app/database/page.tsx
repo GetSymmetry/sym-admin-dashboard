@@ -1,14 +1,14 @@
 'use client';
 
-import { useState, Suspense } from 'react';
-import useSWR from 'swr';
+import { useState, useMemo, Suspense } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 import { Card } from '@/components/ui/Card';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { Gauge } from '@/components/ui/Gauge';
 import { cn, timeAgo, displayValue } from '@/lib/utils';
-import { useDashboardState } from '@/hooks/useDashboardState';
+import { useDebugger } from '@/hooks/useDebugger';
+import { useDebuggerDashboardState } from '@/hooks/useDashboardState';
 import {
   Database,
   HardDrive,
@@ -27,21 +27,144 @@ import {
   FileText,
 } from 'lucide-react';
 
-const fetcher = (url: string) => fetch(url).then(res => res.json());
+/* ── Types for debugger response ── */
+
+interface DatabaseCounts {
+  users: number;
+  organizations: number;
+  workspaces: number;
+  knowledge_units: number;
+  conversations: number;
+  total_jobs: number;
+}
+
+interface DatabaseActivity {
+  new_users: number;
+  new_jobs: number;
+  new_conversations: number;
+  new_kus: number;
+}
+
+interface DatabaseJobs {
+  by_status: Record<string, number>;
+  total: number;
+  details: unknown[];
+}
+
+interface DatabaseHealth {
+  healthy: boolean;
+  version: string;
+  db_size: string;
+  db_size_bytes: number;
+  total_connections: number;
+  active_connections: number;
+  active_queries?: number;
+  waiting_queries?: number;
+  uptime_hours?: number;
+  score?: number;
+  status?: string;
+}
+
+interface DatabaseCache {
+  hit_ratio: number;
+  hits: number;
+  disk_reads: number;
+}
+
+interface DatabaseUsers {
+  total_users: number;
+  whitelisted_users: number;
+}
+
+interface DatabaseTable {
+  table_name: string;
+  total_size: string;
+  row_count: number;
+  dead_tuple_ratio?: number;
+}
+
+interface DatabaseSlowQuery {
+  query: string;
+  calls: number;
+  total_time_ms: number;
+  avg_time_ms: number;
+  max_time_ms: number;
+  rows: number;
+}
+
+interface DatabaseIndex {
+  table: string;
+  index: string;
+  scans: number;
+  tuples_read: number;
+  tuples_fetched: number;
+  size: string;
+}
+
+interface DatabaseLock {
+  mode: string;
+  count: number;
+}
+
+interface DatabaseConnections {
+  total_connections: number;
+  active: number;
+  idle: number;
+  by_state?: Array<{ state: string; count: number; max_duration_sec?: number }>;
+}
+
+interface DatabaseMetrics {
+  counts: DatabaseCounts;
+  activity: DatabaseActivity;
+  jobs: DatabaseJobs;
+  health: DatabaseHealth;
+  cache: DatabaseCache;
+  users: DatabaseUsers;
+  tables: DatabaseTable[];
+  slow_queries: DatabaseSlowQuery[];
+  indexes: DatabaseIndex[];
+  locks: DatabaseLock[];
+  connections: DatabaseConnections;
+}
+
+/* ── Helpers ── */
+
+/** Convert time range key (e.g. '24h', '7d') to hours string */
+function timeRangeToHours(range: string): string {
+  const match = range.match(/(\d+)([hdm])/);
+  if (!match) return '24';
+  const [, num, unit] = match;
+  switch (unit) {
+    case 'd': return String(Number(num) * 24);
+    case 'h': return num;
+    case 'm': return String(Number(num) / 60);
+    default: return '24';
+  }
+}
 
 function DatabaseContent() {
   const [collapsed, setCollapsed] = useState(false);
-  const { environment, timeRange, setEnvironment, setTimeRange } = useDashboardState();
-  const { data, isLoading, mutate } = useSWR(
-    `/api/database?env=${environment}&range=${timeRange}`,
-    fetcher,
+  const {
+    region,
+    setRegion,
+    timeRange,
+    setTimeRange,
+    availableRegions,
+  } = useDebuggerDashboardState();
+
+  const hours = useMemo(() => timeRangeToHours(timeRange), [timeRange]);
+
+  const { data, isLoading, refresh, metadata } = useDebugger<DatabaseMetrics>(
+    '/debug/infra/database/metrics',
+    { hours },
     { refreshInterval: 60000 }
   );
+
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await mutate();
+    await refresh();
     setTimeout(() => setIsRefreshing(false), 1000);
   };
 
@@ -76,25 +199,43 @@ function DatabaseContent() {
     return 'rgb(239 68 68)'; // error
   };
 
+  // Compute locks total from the locks array
+  const locksTotal = data?.locks?.reduce((sum, l) => sum + l.count, 0) ?? 0;
+
+  // Compute cache status from hit ratio
+  const cacheStatus = data?.cache
+    ? data.cache.hit_ratio >= 95 ? 'excellent'
+      : data.cache.hit_ratio >= 90 ? 'good'
+      : data.cache.hit_ratio >= 80 ? 'fair'
+      : 'poor'
+    : '';
+
+  // Compute db size in MB from bytes
+  const dbSizeMb = data?.health?.db_size_bytes != null
+    ? (data.health.db_size_bytes / (1024 * 1024)).toFixed(1)
+    : null;
+
   return (
     <div className="flex h-screen bg-surface-secondary">
       <Sidebar
         collapsed={collapsed}
         onToggle={() => setCollapsed(!collapsed)}
-        environment={environment}
-        onEnvironmentChange={setEnvironment}
+        environment="prod"
       />
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header
           title="Database Health"
-          environment={environment}
-          lastUpdated={data?.timestamp ? timeAgo(data.timestamp) : undefined}
+          environment="prod"
+          lastUpdated={metadata?.timestamp ? timeAgo(metadata.timestamp) : undefined}
           onRefresh={handleRefresh}
           isRefreshing={isRefreshing || isLoading}
           timeRange={timeRange}
           onTimeRangeChange={setTimeRange}
           showTimeRange={true}
+          region={region}
+          onRegionChange={setRegion}
+          availableRegions={availableRegions}
         />
 
         <main className="flex-1 overflow-auto p-6 space-y-6">
@@ -118,29 +259,29 @@ function DatabaseContent() {
                 />
                 <MetricCard
                   title="Database Size"
-                  value={data?.health?.dbSizeMb != null ? `${data.health.dbSizeMb} MB` : '—'}
+                  value={dbSizeMb != null ? `${dbSizeMb} MB` : (data?.health?.db_size || '—')}
                   icon={HardDrive}
                   iconColor="text-brand-blue"
                   subtitle="Total storage"
                 />
                 <MetricCard
                   title="Cache Hit Ratio"
-                  value={data?.cache?.hitRatio != null ? `${data.cache.hitRatio}%` : '—'}
+                  value={data?.cache?.hit_ratio != null ? `${data.cache.hit_ratio}%` : '—'}
                   icon={Zap}
-                  iconColor={getStatusColor(data?.cache?.status || '')}
-                  subtitle={data?.cache?.status || '—'}
+                  iconColor={getStatusColor(cacheStatus)}
+                  subtitle={cacheStatus || '—'}
                 />
                 <MetricCard
                   title="Active Queries"
-                  value={displayValue(data?.health?.activeQueries)}
+                  value={displayValue(data?.health?.active_queries ?? data?.connections?.active)}
                   icon={Search}
                   iconColor="text-brand-blue"
-                  subtitle={data?.health?.waitingQueries != null ? `${data.health.waitingQueries} waiting` : '—'}
+                  subtitle={data?.health?.waiting_queries != null ? `${data.health.waiting_queries} waiting` : '—'}
                 />
                 <MetricCard
                   title="Uptime"
-                  value={data?.health?.uptimeHours != null 
-                    ? `${Math.floor(data.health.uptimeHours / 24)}d ${data.health.uptimeHours % 24}h` 
+                  value={data?.health?.uptime_hours != null
+                    ? `${Math.floor(data.health.uptime_hours / 24)}d ${data.health.uptime_hours % 24}h`
                     : '—'}
                   icon={Clock}
                   iconColor="text-info"
@@ -156,7 +297,7 @@ function DatabaseContent() {
                       <Users className="w-5 h-5 text-brand-blue" />
                     </div>
                     <p className="text-2xl font-mono text-brand-blue">
-                      {displayValue(data?.activity?.newUsers)}
+                      {displayValue(data?.activity?.new_users)}
                     </p>
                     <p className="text-xs text-text-muted mt-1">New Users</p>
                   </div>
@@ -165,7 +306,7 @@ function DatabaseContent() {
                       <MessageSquare className="w-5 h-5 text-success" />
                     </div>
                     <p className="text-2xl font-mono text-success">
-                      {displayValue(data?.activity?.newConversations)}
+                      {displayValue(data?.activity?.new_conversations)}
                     </p>
                     <p className="text-xs text-text-muted mt-1">Conversations</p>
                   </div>
@@ -174,25 +315,25 @@ function DatabaseContent() {
                       <FileText className="w-5 h-5 text-info" />
                     </div>
                     <p className="text-2xl font-mono text-info">
-                      {displayValue(data?.activity?.newMessages)}
+                      {displayValue(data?.activity?.new_kus)}
                     </p>
-                    <p className="text-xs text-text-muted mt-1">Messages</p>
+                    <p className="text-xs text-text-muted mt-1">Knowledge Units</p>
                   </div>
                   <div className="p-4 bg-surface-tertiary rounded-xl text-center">
                     <div className="flex items-center justify-center mb-2">
                       <Database className="w-5 h-5 text-info" />
                     </div>
                     <p className="text-2xl font-mono text-info">
-                      {displayValue(data?.activity?.newKUs)}
+                      {displayValue(data?.counts?.knowledge_units)}
                     </p>
-                    <p className="text-xs text-text-muted mt-1">Knowledge Units</p>
+                    <p className="text-xs text-text-muted mt-1">Total KUs</p>
                   </div>
                   <div className="p-4 bg-surface-tertiary rounded-xl text-center">
                     <div className="flex items-center justify-center mb-2">
                       <Briefcase className="w-5 h-5 text-warning" />
                     </div>
                     <p className="text-2xl font-mono text-warning">
-                      {displayValue(data?.activity?.newJobs)}
+                      {displayValue(data?.activity?.new_jobs)}
                     </p>
                     <p className="text-xs text-text-muted mt-1">Jobs Created</p>
                   </div>
@@ -207,34 +348,49 @@ function DatabaseContent() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <Gauge
-                          value={data?.health?.totalConnections != null ? data.health.totalConnections / 100 : 0}
+                          value={data?.connections?.total_connections != null ? data.connections.total_connections / 100 : 0}
                           size={60}
-                          color={getGaugeColor(100 - (data?.health?.totalConnections ?? 0), { good: 50, warning: 20 })}
+                          color={getGaugeColor(100 - (data?.connections?.total_connections ?? 0), { good: 50, warning: 20 })}
                         />
                         <div>
-                          <p className="text-2xl font-bold text-text-primary">{displayValue(data?.health?.totalConnections)}</p>
+                          <p className="text-2xl font-bold text-text-primary">{displayValue(data?.connections?.total_connections)}</p>
                           <p className="text-xs text-text-muted">Total Connections</p>
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="space-y-2">
-                      {data?.connections?.byState?.length ? (
-                        data.connections.byState.map((conn: any, i: number) => (
+                      {data?.connections?.by_state?.length ? (
+                        data.connections.by_state.map((conn, i: number) => (
                           <div key={i} className="flex items-center justify-between text-sm">
                             <span className="text-text-muted capitalize">{conn.state || 'unknown'}</span>
                             <div className="flex items-center gap-3">
                               <span className="text-text-primary font-mono">{conn.count}</span>
-                              {conn.maxDurationSec > 60 && (
+                              {(conn.max_duration_sec ?? 0) > 60 && (
                                 <span className="text-xs text-warning">
-                                  max {Math.round(conn.maxDurationSec / 60)}m
+                                  max {Math.round((conn.max_duration_sec ?? 0) / 60)}m
                                 </span>
                               )}
                             </div>
                           </div>
                         ))
                       ) : (
-                        <p className="text-text-muted text-sm text-center py-2">No connection data</p>
+                        <>
+                          {data?.connections ? (
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between text-sm">
+                                <span className="text-text-muted">Active</span>
+                                <span className="text-text-primary font-mono">{data.connections.active}</span>
+                              </div>
+                              <div className="flex items-center justify-between text-sm">
+                                <span className="text-text-muted">Idle</span>
+                                <span className="text-text-primary font-mono">{data.connections.idle}</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="text-text-muted text-sm text-center py-2">No connection data</p>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>
@@ -245,14 +401,14 @@ function DatabaseContent() {
                   <div className="space-y-4">
                     <div className="flex items-center justify-center">
                       <Gauge
-                        value={data?.cache?.hitRatio ?? 0}
+                        value={data?.cache?.hit_ratio ?? 0}
                         max={100}
                         size={120}
                         label="Hit Ratio"
-                        color={getGaugeColor(data?.cache?.hitRatio ?? 0, { good: 95, warning: 90 })}
+                        color={getGaugeColor(data?.cache?.hit_ratio ?? 0, { good: 95, warning: 90 })}
                       />
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-4 text-center">
                       <div className="p-3 bg-surface-tertiary rounded-lg">
                         <p className="text-lg font-mono text-success">
@@ -262,7 +418,7 @@ function DatabaseContent() {
                       </div>
                       <div className="p-3 bg-surface-tertiary rounded-lg">
                         <p className="text-lg font-mono text-warning">
-                          {data?.cache?.diskReads != null ? `${(data.cache.diskReads / 1000).toFixed(1)}K` : '—'}
+                          {data?.cache?.disk_reads != null ? `${(data.cache.disk_reads / 1000).toFixed(1)}K` : '—'}
                         </p>
                         <p className="text-xs text-text-muted">Disk Reads</p>
                       </div>
@@ -270,37 +426,47 @@ function DatabaseContent() {
                   </div>
                 </Card>
 
-                {/* Query Stats */}
+                {/* Query Stats — derived from slow_queries */}
                 <Card title="Query Statistics">
-                  {data?.queryStats?.totalQueryTypes != null ? (
+                  {data?.slow_queries?.length ? (
                     <div className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div className="p-3 bg-surface-tertiary rounded-lg text-center">
                           <p className="text-xl font-mono text-brand-blue">
-                            {displayValue(data?.queryStats?.totalQueryTypes)}
+                            {displayValue(data.slow_queries.length)}
                           </p>
                           <p className="text-xs text-text-muted">Query Types</p>
                         </div>
                         <div className="p-3 bg-surface-tertiary rounded-lg text-center">
                           <p className="text-xl font-mono text-info">
-                            {data?.queryStats?.totalCalls != null ? `${(data.queryStats.totalCalls / 1000).toFixed(1)}K` : '—'}
+                            {(() => {
+                              const total = data.slow_queries.reduce((s, q) => s + q.calls, 0);
+                              return total > 1000 ? `${(total / 1000).toFixed(1)}K` : String(total);
+                            })()}
                           </p>
                           <p className="text-xs text-text-muted">Total Calls</p>
                         </div>
                         <div className="p-3 bg-surface-tertiary rounded-lg text-center">
                           <p className="text-xl font-mono text-info">
-                            {data?.queryStats?.avgQueryTimeMs != null ? `${data.queryStats.avgQueryTimeMs.toFixed(1)}ms` : '—'}
+                            {(() => {
+                              const totalCalls = data.slow_queries.reduce((s, q) => s + q.calls, 0);
+                              const totalTime = data.slow_queries.reduce((s, q) => s + q.total_time_ms, 0);
+                              return totalCalls > 0 ? `${(totalTime / totalCalls).toFixed(1)}ms` : '—';
+                            })()}
                           </p>
                           <p className="text-xs text-text-muted">Avg Time</p>
                         </div>
                         <div className="p-3 bg-surface-tertiary rounded-lg text-center">
                           <p className="text-xl font-mono text-warning">
-                            {data?.queryStats?.totalExecMinutes != null ? `${data.queryStats.totalExecMinutes.toFixed(0)}m` : '—'}
+                            {(() => {
+                              const totalMs = data.slow_queries.reduce((s, q) => s + q.total_time_ms, 0);
+                              return `${(totalMs / 60000).toFixed(0)}m`;
+                            })()}
                           </p>
                           <p className="text-xs text-text-muted">Total Exec</p>
                         </div>
                       </div>
-                      
+
                       {/* Locks */}
                       <div className="pt-2 border-t border-border-subtle">
                         <div className="flex items-center justify-between text-sm">
@@ -308,7 +474,7 @@ function DatabaseContent() {
                             <Lock size={14} />
                             Active Locks
                           </span>
-                          <span className="text-text-primary font-mono">{displayValue(data?.locks?.total)}</span>
+                          <span className="text-text-primary font-mono">{displayValue(locksTotal)}</span>
                         </div>
                       </div>
                     </div>
@@ -320,42 +486,6 @@ function DatabaseContent() {
                   )}
                 </Card>
               </div>
-
-              {/* Row Operations */}
-              <Card title="Row Operations (Since DB Start)">
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-                  <div className="p-4 bg-surface-tertiary rounded-xl text-center">
-                    <p className="text-2xl font-mono text-brand-blue">
-                      {data?.operations?.returned != null ? `${(data.operations.returned / 1000000).toFixed(1)}M` : '—'}
-                    </p>
-                    <p className="text-xs text-text-muted mt-1">Rows Returned</p>
-                  </div>
-                  <div className="p-4 bg-surface-tertiary rounded-xl text-center">
-                    <p className="text-2xl font-mono text-info">
-                      {data?.operations?.fetched != null ? `${(data.operations.fetched / 1000000).toFixed(1)}M` : '—'}
-                    </p>
-                    <p className="text-xs text-text-muted mt-1">Rows Fetched</p>
-                  </div>
-                  <div className="p-4 bg-surface-tertiary rounded-xl text-center">
-                    <p className="text-2xl font-mono text-success">
-                      {data?.operations?.inserted != null ? `${(data.operations.inserted / 1000).toFixed(1)}K` : '—'}
-                    </p>
-                    <p className="text-xs text-text-muted mt-1">Rows Inserted</p>
-                  </div>
-                  <div className="p-4 bg-surface-tertiary rounded-xl text-center">
-                    <p className="text-2xl font-mono text-warning">
-                      {data?.operations?.updated != null ? `${(data.operations.updated / 1000).toFixed(1)}K` : '—'}
-                    </p>
-                    <p className="text-xs text-text-muted mt-1">Rows Updated</p>
-                  </div>
-                  <div className="p-4 bg-surface-tertiary rounded-xl text-center">
-                    <p className="text-2xl font-mono text-error">
-                      {data?.operations?.deleted != null ? `${(data.operations.deleted / 1000).toFixed(1)}K` : '—'}
-                    </p>
-                    <p className="text-xs text-text-muted mt-1">Rows Deleted</p>
-                  </div>
-                </div>
-              </Card>
 
               {/* Table Stats & Slow Queries */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -369,24 +499,16 @@ function DatabaseContent() {
                             <th className="pb-3 font-medium">Table</th>
                             <th className="pb-3 font-medium text-right">Rows</th>
                             <th className="pb-3 font-medium text-right">Size</th>
-                            <th className="pb-3 font-medium text-right">Dead %</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-border-subtle">
-                          {data.tables.slice(0, 10).map((table: any, i: number) => (
+                          {data.tables.slice(0, 10).map((table, i: number) => (
                             <tr key={i} className="text-text-secondary">
-                              <td className="py-2 font-mono text-xs">{table.name}</td>
+                              <td className="py-2 font-mono text-xs">{table.table_name}</td>
                               <td className="py-2 text-right font-mono">
-                                {table.rowCount?.toLocaleString() ?? '—'}
+                                {table.row_count?.toLocaleString() ?? '—'}
                               </td>
-                              <td className="py-2 text-right text-text-muted">{table.size ?? '—'}</td>
-                              <td className={cn(
-                                "py-2 text-right font-mono",
-                                table.deadTupleRatio > 10 ? 'text-error' : 
-                                table.deadTupleRatio > 5 ? 'text-warning' : 'text-text-muted'
-                              )}>
-                                {table.deadTupleRatio?.toFixed(1) ?? '—'}%
-                              </td>
+                              <td className="py-2 text-right text-text-muted">{table.total_size ?? '—'}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -400,8 +522,8 @@ function DatabaseContent() {
                 {/* Slow Queries */}
                 <Card title="Slowest Queries">
                   <div className="space-y-3">
-                    {data?.slowQueries?.length ? (
-                      data.slowQueries.slice(0, 5).map((query: any, i: number) => (
+                    {data?.slow_queries?.length ? (
+                      data.slow_queries.slice(0, 5).map((query, i: number) => (
                         <div
                           key={i}
                           className="p-3 bg-surface-tertiary rounded-lg"
@@ -409,10 +531,10 @@ function DatabaseContent() {
                           <div className="flex items-center justify-between mb-2">
                             <span className={cn(
                               "text-xs font-mono",
-                              query.avgTimeMs > 1000 ? 'text-error' :
-                              query.avgTimeMs > 100 ? 'text-warning' : 'text-text-muted'
+                              query.avg_time_ms > 1000 ? 'text-error' :
+                              query.avg_time_ms > 100 ? 'text-warning' : 'text-text-muted'
                             )}>
-                              avg {query.avgTimeMs?.toFixed(0)}ms
+                              avg {query.avg_time_ms?.toFixed(0)}ms
                             </span>
                             <span className="text-xs text-text-muted">
                               {query.calls?.toLocaleString()} calls
@@ -449,7 +571,7 @@ function DatabaseContent() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border-subtle">
-                        {data.indexes.map((idx: any, i: number) => (
+                        {data.indexes.map((idx, i: number) => (
                           <tr key={i} className="text-text-secondary">
                             <td className="py-2 font-mono text-xs text-brand-blue">{idx.index}</td>
                             <td className="py-2 font-mono text-xs text-text-muted">{idx.table}</td>
@@ -457,7 +579,7 @@ function DatabaseContent() {
                               {idx.scans?.toLocaleString() ?? '—'}
                             </td>
                             <td className="py-2 text-right font-mono text-text-muted">
-                              {idx.tuplesRead?.toLocaleString() ?? '—'}
+                              {idx.tuples_read?.toLocaleString() ?? '—'}
                             </td>
                             <td className="py-2 text-right text-text-muted">{idx.size ?? '—'}</td>
                           </tr>
